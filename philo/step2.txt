@@ -1,0 +1,23 @@
+## ✅ Step 2 is implemented: simulation initialization
+
+I added the actual setup code for the philosopher/fork state and mutex initialization in init.c, and wired it into main.c. The public API was updated in philo.h.
+
+### What it does
+- allocates the fork mutex array
+- allocates the philosopher array
+- initializes print/state/stop mutexes
+- assigns each philosopher:
+  - left fork
+  - right fork
+  - starting meal timestamp
+  - pointer back to shared simulation
+
+### Verified
+I checked it by running:
+
+make fclean && make && ./philo 5 800 200 200
+
+This completed successfully with no compile errors and the program started cleanly.
+
+### Next step
+The next piece is the actual philosopher routine and the death-monitor loop. I can build that next in the same style.

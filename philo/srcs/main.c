@@ -6,37 +6,39 @@
 /*   By: vorhansa <vorhansa@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/02 17:37:06 by vorhansa          #+#    #+#             */
-/*   Updated: 2026/06/02 18:30:38 by vorhansa         ###   ########.fr       */
+/*   Updated: 2026/11/12 14:51:37 by vorhansa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "../incs/philo.h"
+#include "philo.h"
 
-int check_args(int ac ,char **av)
+void	print_error(const char *msg)
 {
-    int     i;
-    long    num;
-    
-    if (ac < 5 || ac > 6)
-        return (0);
-    i = 0;
-    while (i < ac)
-    {
-        num = ft_atoi(av[i]);
-        if (i == 1 && (num < 1 || num > PHILO_MAX_COUNT))
-            return (0);
-        else if (i == 5 && (num < 0 || num > INT_MAX))
-            return (0);
-        else if ( i != 1 && i != 5 && (num < 1 || num > INT_MAX))
-            return (0);
-        
-    }
-    return (1);
+    if (msg)
+        write(2, msg, ft_strlen(msg));
+}
+
+long long	now_ms(void)
+{
+    struct timeval	tv;
+
+    gettimeofday(&tv, NULL);
+    return ((long long)tv.tv_sec * 1000LL + (long long)tv.tv_usec / 1000LL);
 }
 
 int	main(int ac, char **av)
 {
-	if (!check_args(ac, av))
-        error_msg("Argument ERROR\n", 1);
+    t_sim	sim;
+
+    if (!parse_args(ac, av, &sim))
+    {
+        print_error("Error: invalid arguments\n");
+        return (1);
+    }
+    if (!init_sim(&sim))
+    {
+        print_error("Error: simulation initialization failed\n");
+        return (1);
+    }
     return (0);
 }
