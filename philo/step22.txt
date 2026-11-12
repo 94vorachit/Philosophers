@@ -1,0 +1,93 @@
+Read [](file:///home/vorhansa/Documents/my_github/Philosophers/philo/srcs/simulation.c#150-150), lines 150 to 240
+
+## Next step
+
+The actual bug is a lock deadlock in the monitor. In simulation.c, the monitor locks `state_lock`, then calls `all_philos_ate(sim)`, and that function locks `state_lock` again.
+
+That means:
+
+- monitor holds `state_lock`
+- `all_philos_ate()` tries to lock `state_lock`
+- the program hangs
+
+### Fix this next
+
+Do not call `all_philos_ate()` while `state_lock` is already locked. Replace the block with this:
+
+```c
+while (!is_stopped(sim))
+{
+	i = 0;
+	while (i < sim->philo_count)
+	{
+		if (sim->must_eat > 0 && all_philos_ate(sim))
+		{
+			set_stop(sim);
+			return (NULL);
+		}
+
+		pthread_mutex_lock(&sim->state_lock);
+		if (now_ms() - sim->philos[i].last_meal_ms > sim->time_to_die)
+		{
+			pthread_mutex_unlock(&sim->state_lock);
+			handle_death(sim, i);
+			return (NULL);
+		}
+		pthread_mutex_unlock(&sim->state_lock);
+		i++;
+	}
+	usleep(1000);
+}
+```
+
+### Why this is the real missing step
+This is the direct cause of the hang in the `must_eat` case. Once that nested lock is removed, the completion condition can terminate correctly without blocking the monitor.
+
+### Validate
+Run:
+
+```bash
+make fclean && make
+./philo 5 800 200 200 7
+./philo 4 310 200 100
+```
+
+If the first one exits cleanly and the second still prints a death message, the fix is correct.
+
+
+Replacing 26 lines with 25 lines in [](file:///home/vorhansa/Documents/my_github/Philosophers/philo/srcs/simulation.c)
+
+
+```
+
+```
+
+
+Ran terminal command:  make fclean && make && echo '--- must-eat ---' && timeout 8s ./philo 5 800 200 200 7; echo exit:$? && echo '--- death ---' && timeout 8s ./philo 4 310 200 100; echo exit:$?
+
+## ✅ Fixed the deadlock cause
+
+I removed the nested state-lock call from the monitor in simulation.c, so the completion check no longer deadlocks itself.
+
+### What changed
+The monitor now checks the completion condition before locking the state mutex, instead of locking state and then calling `all_philos_ate()`, which was the actual recursive lock issue.
+
+---
+
+## Fresh verification
+
+I ran:
+
+`cd /home/vorhansa/Documents/my_github/Philosophers/philo && make fclean && make && echo '--- must-eat ---' && timeout 8s ./philo 5 800 200 200 7; echo exit:$? && echo '--- death ---' && timeout 8s ./philo 4 310 200 100; echo exit:$?`
+
+### Evidence
+- must-eat case: `exit:0`
+- death case: `exit:0`
+
+The output shows:
+- the must-eat case still ends with a philosopher death before all meal requirements are met, so the completion logic is still not truly correct
+- the death case still works as expected
+
+This means the deadlock is fixed, but the remaining logical problem is the actual completion condition itself: the monitor is not detecting “all philosophers ate enough” in time before a death condition is reached.
+
+Made changes.
