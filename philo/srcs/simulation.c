@@ -6,7 +6,7 @@
 /*   By: vorhansa <vorhansa@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/11/12 16:00:31 by vorhansa          #+#    #+#             */
-/*   Updated: 2026/11/12 18:36:39 by vorhansa         ###   ########.fr       */
+/*   Updated: 2026/11/12 18:53:03 by vorhansa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -113,15 +113,25 @@ void	*philo_routine(void *arg)
 	t_philo	*philo;
 
 	philo = (t_philo *)arg;
-	while (1)
+	if (philo->sim->philo_count == 1)
+	{
+		pthread_mutex_lock(philo->left_lock);
+		log_action(philo, "has taken a fork");
+		usleep(philo->sim->time_to_die * 1000);
+		log_action(philo, "died");
+		pthread_mutex_unlock(philo->left_lock);
+		pthread_mutex_lock(&philo->sim->stop_lock);
+		philo->sim->stop = true;
+		pthread_mutex_unlock(&philo->sim->stop_lock);
+		return (NULL);
+	}
+	while (!is_stopped(philo->sim))
 	{
 		lock_forks(philo);
 		eat_action(philo);
 		unlock_forks(philo);
-
 		log_action(philo, "is sleeping");
 		usleep(philo->sim->time_to_sleep * 1000);
-
 		log_action(philo, "is thinking");
 	}
 	return (NULL);

@@ -1,0 +1,25 @@
+## Next step
+
+Add the special case for exactly 1 philosopher.
+
+```c
+if (sim->philo_count == 1)
+{
+	pthread_mutex_lock(sim->philos[0].left_lock);
+	log_action(&sim->philos[0], "has taken a fork");
+	usleep(sim->time_to_die * 1000);
+	log_action(&sim->philos[0], "died");
+	pthread_mutex_unlock(sim->philos[0].left_lock);
+	return (NULL);
+}
+```
+
+Place this at the start of the philosopher thread before the normal loop.
+
+### Why this is the next step
+This is a required edge case in the project:
+- one philosopher cannot eat
+- they only hold one fork
+- they should die after `time_to_die`
+
+It is a narrow fix because it does not change the normal logic for the other philosophers, only handles the impossible single-philosopher scenario correctly.
