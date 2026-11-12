@@ -1,0 +1,48 @@
+## Next step
+
+Add the final death print as soon as the monitor detects a philosopher has exceeded `time_to_die`.
+
+```c
+static void	*monitor_routine(void *arg)
+{
+	t_sim	*sim;
+	int		i;
+
+	sim = (t_sim *)arg;
+	while (!is_stopped(sim))
+	{
+		i = 0;
+		while (i < sim->philo_count)
+		{
+			pthread_mutex_lock(&sim->state_lock);
+			if (now_ms() - sim->philos[i].last_meal_ms > sim->time_to_die)
+			{
+				pthread_mutex_unlock(&sim->state_lock);
+				pthread_mutex_lock(&sim->print_lock);
+				printf("%lld %d died\n",
+					now_ms() - sim->start_time_ms, sim->philos[i].id);
+				pthread_mutex_unlock(&sim->print_lock);
+				pthread_mutex_lock(&sim->stop_lock);
+				sim->stop = true;
+				pthread_mutex_unlock(&sim->stop_lock);
+				return (NULL);
+			}
+			pthread_mutex_unlock(&sim->state_lock);
+			i++;
+		}
+		usleep(1000);
+	}
+	return (NULL);
+}
+```
+
+### Why this is the right next step
+This is the first version of the expected project behavior:
+- death is detected
+- the output log is printed
+- the simulation stops
+
+This is still a small, focused milestone before adding:
+- `must_eat` completion logic
+- cleanup and shutdown handling
+- edge-case fixes like 1 philosopher and deadlock prevention
