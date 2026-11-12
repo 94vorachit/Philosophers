@@ -6,7 +6,7 @@
 /*   By: vorhansa <vorhansa@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/11/12 16:00:31 by vorhansa          #+#    #+#             */
-/*   Updated: 2026/11/12 19:00:02 by vorhansa         ###   ########.fr       */
+/*   Updated: 2026/11/12 19:04:59 by vorhansa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -60,15 +60,29 @@ void	unlock_forks(t_philo *philo)
 }
 
 /**
- * Add the log function and print each action with a timestamp.
+ * Add the one missing synchronization rule: a philosopher must not print after death. 
+ * The easiest way is to check the stop flag inside the print helper before printing.
  */
 void	log_action(t_philo *philo, const char *action)
 {
 	long long	elapsed;
 
+	pthread_mutex_lock(&philo->sim->stop_lock);
+	if (philo->sim->stop)
+	{
+		pthread_mutex_unlock(&philo->sim->stop_lock);
+		return ;
+	}
+	pthread_mutex_unlock(&philo->sim->stop_lock);
+
 	pthread_mutex_lock(&philo->sim->print_lock);
-	elapsed = now_ms() - philo->sim->start_time_ms;
-	printf("%lld %d %s\n", elapsed, philo->id, action);
+	pthread_mutex_lock(&philo->sim->stop_lock);
+	if (!philo->sim->stop)
+	{
+		elapsed = now_ms() - philo->sim->start_time_ms;
+		printf("%lld %d %s\n", elapsed, philo->id, action);
+	}
+	pthread_mutex_unlock(&philo->sim->stop_lock);
 	pthread_mutex_unlock(&philo->sim->print_lock);
 }
 
@@ -91,21 +105,21 @@ void	eat_action(t_philo *philo)
  */
 int	all_philos_ate(t_sim *sim)
 {
-    int	i;
+	int	i;
 
-    i = 0;
-    while (i < sim->philo_count)
-    {
-        pthread_mutex_lock(&sim->state_lock);
-        if (sim->philos[i].meals_eaten < sim->must_eat)
-        {
-            pthread_mutex_unlock(&sim->state_lock);
-            return (0);
-        }
-        pthread_mutex_unlock(&sim->state_lock);
-        i++;
-    }
-    return (1);
+	i = 0;
+	while (i < sim->philo_count)
+	{
+		pthread_mutex_lock(&sim->state_lock);
+		if (sim->philos[i].meals_eaten < sim->must_eat)
+		{
+			pthread_mutex_unlock(&sim->state_lock);
+			return (0);
+		}
+		pthread_mutex_unlock(&sim->state_lock);
+		i++;
+	}
+	return (1);
 }
 
 void	*philo_routine(void *arg)

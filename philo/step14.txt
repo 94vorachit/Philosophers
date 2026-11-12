@@ -1,0 +1,37 @@
+## Next step
+
+Add the one missing synchronization rule: a philosopher must not print after death. The easiest way is to check the stop flag inside the print helper before printing.
+
+```c
+static void	log_action(t_philo *philo, const char *action)
+{
+	long long	elapsed;
+
+	pthread_mutex_lock(&philo->sim->stop_lock);
+	if (philo->sim->stop)
+	{
+		pthread_mutex_unlock(&philo->sim->stop_lock);
+		return ;
+	}
+	pthread_mutex_unlock(&philo->sim->stop_lock);
+
+	pthread_mutex_lock(&philo->sim->print_lock);
+	pthread_mutex_lock(&philo->sim->stop_lock);
+	if (!philo->sim->stop)
+	{
+		elapsed = now_ms() - philo->sim->start_time_ms;
+		printf("%lld %d %s\n", elapsed, philo->id, action);
+	}
+	pthread_mutex_unlock(&philo->sim->stop_lock);
+	pthread_mutex_unlock(&philo->sim->print_lock);
+}
+```
+
+### Why this is the next step
+This fixes the common 42 evaluator issue:
+- death happens
+- monitor sets stop
+- no further prints are allowed
+- output stays consistent and deterministic
+
+This is an important correctness step, but still small and focused: it protects the final output after the core simulation logic already works.
