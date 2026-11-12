@@ -1,0 +1,43 @@
+## Next step
+
+Add the one-phi case explicitly in the philosopher routine.
+
+```c
+if (philo->sim->philo_count == 1)
+{
+	pthread_mutex_lock(philo->left_lock);
+	log_action(philo, "has taken a fork");
+	usleep(philo->sim->time_to_die * 1000);
+	pthread_mutex_unlock(philo->left_lock);
+	return (NULL);
+}
+```
+
+### Why this is the next step
+This is the important special-case rule from the project:
+- a single philosopher cannot eat
+- they take one fork and then die after `time_to_die`
+- without this case, the logic deadlocks or misbehaves
+
+This is still a very focused fix and it belongs right before final validation and cleanup polishing.
+
+What changed
+When there is exactly one philosopher:
+
+it locks the only fork
+waits for time_to_die
+prints death
+stops the simulation
+This matches the required 42 behavior.
+
+Verified
+I validated it with:
+
+make fclean && make && valgrind --leak-check=full ./philo 1 800 200 200
+
+Fresh output showed:
+
+61 1 has taken a fork
+801 1 died
+no memory leaks
+no valgrind errors

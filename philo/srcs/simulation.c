@@ -6,7 +6,7 @@
 /*   By: vorhansa <vorhansa@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/11/12 16:00:31 by vorhansa          #+#    #+#             */
-/*   Updated: 2026/11/12 19:04:59 by vorhansa         ###   ########.fr       */
+/*   Updated: 2026/11/12 19:09:38 by vorhansa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -132,11 +132,14 @@ void	*philo_routine(void *arg)
 		pthread_mutex_lock(philo->left_lock);
 		log_action(philo, "has taken a fork");
 		usleep(philo->sim->time_to_die * 1000);
-		log_action(philo, "died");
 		pthread_mutex_unlock(philo->left_lock);
 		pthread_mutex_lock(&philo->sim->stop_lock);
 		philo->sim->stop = true;
 		pthread_mutex_unlock(&philo->sim->stop_lock);
+		pthread_mutex_lock(&philo->sim->print_lock);
+		printf("%lld %d died\n",
+			now_ms() - philo->sim->start_time_ms, philo->id);
+		pthread_mutex_unlock(&philo->sim->print_lock);
 		return (NULL);
 	}
 	while (!is_stopped(philo->sim))
