@@ -6,7 +6,7 @@
 /*   By: vorhansa <vorhansa@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/11/12 15:00:00 by vorhansa          #+#    #+#             */
-/*   Updated: 2026/11/12 15:41:54 by vorhansa         ###   ########.fr       */
+/*   Updated: 2026/11/12 19:00:02 by vorhansa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -82,11 +82,30 @@ int	init_sim(t_sim *sim)
 	sim->philos = malloc(sizeof(t_philo) * sim->philo_count);
 	sim->forks = malloc(sizeof(pthread_mutex_t) * sim->philo_count);
 	if (!sim->philos || !sim->forks)
+	{
+		free(sim->philos);
+		free(sim->forks);
+		sim->philos = NULL;
+		sim->forks = NULL;
 		return (0);
+	}
 	if (!init_shared_mutexes(sim))
+	{
+		free(sim->philos);
+		free(sim->forks);
+		sim->philos = NULL;
+		sim->forks = NULL;
 		return (0);
+	}
 	if (!init_forks(sim))
+	{
+		destroy_mutexes(sim);
+		free(sim->philos);
+		free(sim->forks);
+		sim->philos = NULL;
+		sim->forks = NULL;
 		return (0);
+	}
 	init_philos(sim);
 	return (1);
 }

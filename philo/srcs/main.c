@@ -6,7 +6,7 @@
 /*   By: vorhansa <vorhansa@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/02 17:37:06 by vorhansa          #+#    #+#             */
-/*   Updated: 2026/11/12 18:53:03 by vorhansa         ###   ########.fr       */
+/*   Updated: 2026/11/12 19:00:02 by vorhansa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,19 +18,25 @@
  */
 void	cleanup_sim(t_sim *sim)
 {
-    int	i;
+	int	i;
 
-    i = 0;
-    while (i < sim->philo_count)
-    {
-        pthread_mutex_destroy(&sim->forks[i]);
-        i++;
-    }
-    pthread_mutex_destroy(&sim->print_lock);
-    pthread_mutex_destroy(&sim->state_lock);
-    pthread_mutex_destroy(&sim->stop_lock);
-    free(sim->forks);
-    free(sim->philos);
+	if (!sim)
+		return ;
+	i = 0;
+	while (i < sim->philo_count)
+	{
+		pthread_mutex_destroy(&sim->forks[i]);
+		i++;
+	}
+	pthread_mutex_destroy(&sim->print_lock);
+	pthread_mutex_destroy(&sim->state_lock);
+	pthread_mutex_destroy(&sim->stop_lock);
+	free(sim->threads);
+	sim->threads = NULL;
+	free(sim->forks);
+	sim->forks = NULL;
+	free(sim->philos);
+	sim->philos = NULL;
 }
 
 void	print_error(const char *msg)

@@ -6,7 +6,7 @@
 /*   By: vorhansa <vorhansa@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/11/12 16:00:31 by vorhansa          #+#    #+#             */
-/*   Updated: 2026/11/12 18:53:03 by vorhansa         ###   ########.fr       */
+/*   Updated: 2026/11/12 19:00:02 by vorhansa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -193,13 +193,26 @@ int	start_simulation(t_sim *sim)
 	if (!sim->threads)
 		return (0);
 	if (pthread_create(&sim->monitor, NULL, monitor_routine, sim) != 0)
+	{
+		free(sim->threads);
+		sim->threads = NULL;
 		return (0);
+	}
 	index = 0;
 	while (index < sim->philo_count)
 	{
 		if (pthread_create(&sim->threads[index], NULL, philo_routine,
 				&sim->philos[index]) != 0)
+		{
+			while (index > 0)
+			{
+				pthread_join(sim->threads[--index], NULL);
+			}
+			pthread_join(sim->monitor, NULL);
+			free(sim->threads);
+			sim->threads = NULL;
 			return (0);
+		}
 		index++;
 	}
 	index = 0;
@@ -208,6 +221,7 @@ int	start_simulation(t_sim *sim)
 		pthread_join(sim->threads[index], NULL);
 		index++;
 	}
+	pthread_join(sim->monitor, NULL);
 	free(sim->threads);
 	sim->threads = NULL;
 	return (1);
