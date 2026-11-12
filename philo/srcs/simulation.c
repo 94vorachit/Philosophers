@@ -6,7 +6,7 @@
 /*   By: vorhansa <vorhansa@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/11/12 16:00:31 by vorhansa          #+#    #+#             */
-/*   Updated: 2026/11/12 19:19:40 by vorhansa         ###   ########.fr       */
+/*   Updated: 2026/11/12 19:27:57 by vorhansa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,12 +40,12 @@ bool	is_stopped(t_sim *sim)
  * it keeps the logic completely separate from eating/death rules
  * it is the exact “exit condition” pattern the real simulation will need later
  */
-// void	set_stop(t_sim *sim)
-// {
-// 	pthread_mutex_lock(&sim->stop_lock);
-// 	sim->stop = true;
-// 	pthread_mutex_unlock(&sim->stop_lock);
-// }
+void	set_stop(t_sim *sim)
+{
+	pthread_mutex_lock(&sim->stop_lock);
+	sim->stop = true;
+	pthread_mutex_unlock(&sim->stop_lock);
+}
 
 /**
  * Make the fork-pick order deterministic and safe by 
@@ -153,9 +153,7 @@ void	*philo_routine(void *arg)
 		log_action(philo, "has taken a fork");
 		usleep(philo->sim->time_to_die * 1000);
 		pthread_mutex_unlock(philo->left_lock);
-		pthread_mutex_lock(&philo->sim->stop_lock);
-		philo->sim->stop = true;
-		pthread_mutex_unlock(&philo->sim->stop_lock);
+		set_stop(philo->sim);
 		pthread_mutex_lock(&philo->sim->print_lock);
 		printf("%lld %d died\n",
 			now_ms() - philo->sim->start_time_ms, philo->id);
@@ -202,20 +200,16 @@ void	*monitor_routine(void *arg)
 				printf("%lld %d died\n",
 					now_ms() - sim->start_time_ms, sim->philos[i].id);
 				pthread_mutex_unlock(&sim->print_lock);
-				pthread_mutex_lock(&sim->stop_lock);
-				sim->stop = true;
-				pthread_mutex_unlock(&sim->stop_lock);
+				set_stop(sim);
 				return (NULL);
 			}
 			pthread_mutex_unlock(&sim->state_lock);
 			i++;
-			if (sim->must_eat > 0 && all_philos_ate(sim))
-			{
-				pthread_mutex_lock(&sim->stop_lock);
-				sim->stop = true;
-				pthread_mutex_unlock(&sim->stop_lock);
-				return (NULL);
-			}
+		}
+		if (sim->must_eat > 0 && all_philos_ate(sim))
+		{
+			set_stop(sim);
+			return (NULL);
 		}
 		usleep(1000);
 	}

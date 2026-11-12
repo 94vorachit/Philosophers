@@ -1,0 +1,41 @@
+## Next step
+
+Add the final “all philosophers ate enough” exit condition to the monitor, alongside the death check.
+
+```c
+static bool	all_ate_enough(t_sim *sim)
+{
+	int	i;
+
+	i = 0;
+	while (i < sim->philo_count)
+	{
+		pthread_mutex_lock(&sim->state_lock);
+		if (sim->philos[i].meals_eaten < sim->must_eat)
+		{
+			pthread_mutex_unlock(&sim->state_lock);
+			return (false);
+		}
+		pthread_mutex_unlock(&sim->state_lock);
+		i++;
+	}
+	return (true);
+}
+```
+
+Then in the monitor loop:
+
+```c
+if (sim->must_eat > 0 && all_ate_enough(sim))
+{
+	set_stopped(sim);
+	return (NULL);
+}
+```
+
+### Why this is the next step
+This adds the second required end condition from the project rules:
+- death ends the simulation
+- finishing the meal target also ends it
+
+This keeps the monitor logic complete without going into final polish or edge-case cleanup.
