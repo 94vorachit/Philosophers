@@ -1,0 +1,97 @@
+The failing case is narrowed to the must-eat completion check, so the next step is to fix the monitor ordering and the completion condition without changing the rest of the simulation.
+
+## Next step
+
+The real remaining bug is in the monitor order in simulation.c: it checks death before completion.
+
+When `must_eat` is set, the monitor should stop on completion first, before printing a death message.
+
+### Fix this order
+
+Replace the monitor loop body with this pattern:
+
+```c
+while (!is_stopped(sim))
+{
+	i = 0;
+	while (i < sim->philo_count)
+	{
+		pthread_mutex_lock(&sim->state_lock);
+		if (sim->must_eat > 0 && all_philos_ate(sim))
+		{
+			pthread_mutex_unlock(&sim->state_lock);
+			set_stop(sim);
+			return (NULL);
+		}
+		if (now_ms() - sim->philos[i].last_meal_ms > sim->time_to_die)
+		{
+			pthread_mutex_unlock(&sim->state_lock);
+			handle_death(sim, i);
+			return (NULL);
+		}
+		pthread_mutex_unlock(&sim->state_lock);
+		i++;
+	}
+	usleep(1000);
+}
+```
+
+### Why this is the right next change
+- completion should win over death when `must_eat` is active
+- it avoids the false death case you saw in the `5 800 200 200 7` test
+- it keeps the monitor logic consistent with the project rule
+
+### Validate afterward
+Run:
+
+```bash
+make fclean && make
+./philo 5 800 200 200 7
+./philo 4 310 200 100
+```
+
+If the first one exits cleanly and the second still prints a death message, the must-eat bug is fixed.
+
+Read [](file:///home/vorhansa/Documents/my_github/Philosophers/philo/srcs/simulation.c#150-150), lines 150 to 240
+
+Replacing 25 lines with 26 lines in [](file:///home/vorhansa/Documents/my_github/Philosophers/philo/srcs/simulation.c)
+
+
+```
+
+```
+
+
+Ran terminal command:  cd /home/vorhansa/Documents/my_github/Philosophers/philo && make fclean && make && echo '--- must-eat ---' && timeout 8s ./philo 5 800 200 200 7; echo exit:$? && echo '--- death ---' && timeout 8s ./philo 4 310 200 100; echo exit:$?
+
+## ✅ Updated the monitor ordering
+
+I changed the must-eat check to run before the death check in simulation.c.
+
+### What changed
+The monitor now does:
+
+- check `must_eat` completion first
+- if all philosophers have eaten enough, call `set_stop(sim)`
+- otherwise check death timing
+- then continue normally
+
+This is the ordering you wanted for the completion-vs-death conflict.
+
+---
+
+## Verification
+
+I ran this fresh check:
+
+`cd /home/vorhansa/Documents/my_github/Philosophers/philo && make fclean && make && echo '--- must-eat ---' && timeout 8s ./philo 5 800 200 200 7; echo exit:$? && echo '--- death ---' && timeout 8s ./philo 4 310 200 100; echo exit:$?`
+
+### Evidence
+- must-eat case: `exit:124`
+- death case: `exit:0`
+
+So the death rule is still correct, but the must-eat completion case is not solved yet. The program is still timing out instead of ending cleanly once all philosophers reach the required meal count.
+
+> The code is updated, but the must-eat bug remains the actual remaining issue in the monitor logic.
+
+Made changes.
