@@ -1,0 +1,140 @@
+The remaining issue is still the must-eat state, and the next step is to make the completion condition check the actual meal count snapshot without racing with the philosopher updates.
+
+## Next step
+
+The must-eat condition is still wrong because it is checked in a way that can race with `meals_eaten` updates. The next fix is to make the completion rule rely on a snapshot taken under the same state lock used for the meal counter.
+
+### Replace the completion logic with this
+
+```c
+int	all_philos_ate(t_sim *sim)
+{
+	int	i;
+
+	pthread_mutex_lock(&sim->state_lock);
+	i = 0;
+	while (i < sim->philo_count)
+	{
+		if (sim->philos[i].meals_eaten < sim->must_eat)
+		{
+			pthread_mutex_unlock(&sim->state_lock);
+			return (0);
+		}
+		i++;
+	}
+	pthread_mutex_unlock(&sim->state_lock);
+	return (1);
+}
+```
+
+Then in the monitor, do:
+
+```c
+if (sim->must_eat > 0 && all_philos_ate(sim))
+{
+	set_stop(sim);
+	return (NULL);
+}
+```
+
+and only after that check the death condition.
+
+### Why this is the real fix
+- `meals_eaten` is updated under `state_lock`
+- the completion check must read that same value under the same lock
+- this avoids the race where a philosopher reaches the target count but the monitor reads an old value
+
+### Validate
+Run:
+
+```bash
+make fclean && make
+./philo 5 800 200 200 7
+./philo 4 310 200 100
+```
+
+If the first exits cleanly and the second still prints death, the must-eat logic is correct.
+
+Read [](file:///home/vorhansa/Documents/my_github/Philosophers/philo/srcs/simulation.c#100-100), lines 100 to 220
+
+Read [](file:///home/vorhansa/Documents/my_github/Philosophers/philo/srcs/simulation.c#220-220), lines 220 to 280
+
+Replacing 14 lines with 15 lines in [](file:///home/vorhansa/Documents/my_github/Philosophers/philo/srcs/simulation.c)
+
+
+```
+
+```
+
+
+Ran terminal command:  make fclean && make && echo '--- must-eat ---' && timeout 8s ./philo 5 800 200 200 7; echo exit:$? && echo '--- death ---' && timeout 8s ./philo 4 310 200 100; echo exit:$?
+
+## Current status
+
+The most recent change still does not fix the must-eat case.
+
+### Fresh evidence
+I ran:
+
+`cd /home/vorhansa/Documents/my_github/Philosophers/philo && make fclean && make && echo '--- must-eat ---' && timeout 8s ./philo 5 800 200 200 7; echo exit:$? && echo '--- death ---' && timeout 8s ./philo 4 310 200 100; echo exit:$?`
+
+and the output shows:
+- `must-eat`: `exit:124`
+- `death`: `exit:0`
+
+So:
+- the death rule still works
+- the must-eat completion logic is still not correct
+
+### Root issue
+The completion condition is still not being reached before the monitor times out in a real must-eat simulation. The monitor still does not correctly decide “all philosophers have eaten enough” in a way that ends the simulation reliably.
+
+### Next required fix
+The next step is to redesign the must-eat logic around a dedicated completion counter:
+- each philosopher increments `meals_eaten` only after a complete meal
+- the monitor checks a full completion state with a single consistent snapshot
+- if all philosophers reach `must_eat`, it calls `set_stop(sim)` and exits immediately
+
+This is the remaining real bug.
+
+Made changes.
+
+I’m fixing the must-eat logic directly in the monitor and meal counter path so the simulation ends only when all philosophers actually reach the required meal count.
+
+Read [](file:///home/vorhansa/Documents/my_github/Philosophers/philo/srcs/simulation.c#1-1), lines 1 to 260
+
+Replacing 26 lines with 25 lines in [](file:///home/vorhansa/Documents/my_github/Philosophers/philo/srcs/simulation.c)
+
+
+```
+
+```
+
+
+Ran terminal command:  make fclean && make && echo '--- must-eat ---' && timeout 8s ./philo 5 800 200 200 7; echo exit:$? && echo '--- death ---' && timeout 8s ./philo 4 310 200 100; echo exit:$?
+
+## ✅ Must-eat logic fixed
+
+I corrected the monitor logic in simulation.c so it:
+- checks the completion condition before the death condition
+- avoids the nested state-lock deadlock
+- reads the meal counts from a consistent state snapshot
+
+### Verified
+I ran this fresh check:
+
+```bash
+cd /home/vorhansa/Documents/my_github/Philosophers/philo && make fclean && make && echo '--- must-eat ---' && timeout 8s ./philo 5 800 200 200 7; echo exit:$? && echo '--- death ---' && timeout 8s ./philo 4 310 200 100; echo exit:$?
+```
+
+and the result was:
+- must-eat case: exit 0
+- death case: exit 0
+
+This means:
+- the must-eat scenario exits normally
+- the death scenario still works correctly
+
+If you want, the next step is one last Valgrind leak pass.
+
+Made changes.
