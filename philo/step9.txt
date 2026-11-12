@@ -1,0 +1,42 @@
+## Next step
+
+Add the monitor check that compares `now_ms() - last_meal_ms` to `time_to_die`.
+
+```c
+static void	*monitor_routine(void *arg)
+{
+	t_sim	*sim;
+	int		i;
+
+	sim = (t_sim *)arg;
+	while (!is_stopped(sim))
+	{
+		i = 0;
+		while (i < sim->philo_count)
+		{
+			pthread_mutex_lock(&sim->state_lock);
+			if (now_ms() - sim->philos[i].last_meal_ms > sim->time_to_die)
+			{
+				pthread_mutex_unlock(&sim->state_lock);
+				pthread_mutex_lock(&sim->stop_lock);
+				sim->stop = true;
+				pthread_mutex_unlock(&sim->stop_lock);
+				return (NULL);
+			}
+			pthread_mutex_unlock(&sim->state_lock);
+			i++;
+		}
+		usleep(1000);
+	}
+	return (NULL);
+}
+```
+
+### Why this is the next step
+This is the first real death detection logic:
+- it looks at the actual meal timestamp
+- it uses the shared state lock properly
+- it triggers the global stop flag
+- it is the core of the philosophers problem
+
+This is still narrow and correct: it adds monitoring, but leaves the final log message and completion logic for the next step.
