@@ -1,0 +1,143 @@
+## Next tiny step
+
+You are still at Step 2, and the smallest next move is:
+
+### Step 3A — thread startup scaffold
+Before adding eating logic, just add a minimal `start_simulation` path that:
+- allocates the `pthread_t` array
+- creates philosopher threads
+- joins them
+- keeps the philosopher body as a placeholder loop
+
+This is the boundary between:
+- setup-only work in init.c
+- actual runtime work in the future simulation file
+
+### Why this is the correct next step
+It lets you validate:
+- thread creation succeeds
+- mutexes are usable
+- the simulation structure is complete
+
+without mixing in:
+- death detection
+- meal counting
+- fork locking rules
+- monitor logic
+
+### Good rule
+Do not write the full philosopher routine yet. First, make a thread start/stop skeleton that compiles and runs.
+
+Then the next tiny step after that is:
+- add `lock_forks`
+- add `eat`
+- add `sleep`
+- add `think`
+
+So the progression should be:
+
+1. parse + init
+2. start threads
+3. add one philosopher loop
+4. add monitor
+5. add death/full logic
+
+If you want, I can do only that first runtime scaffold next, and stop there.
+
+Read [](file:///home/vorhansa/Documents/my_github/Philosophers/philo/includes/philo.h)
+
+## Small next step: thread startup scaffold
+
+This is the next tiny step after initialization: create threads, wait on them, and keep the philosopher body as a placeholder. No eating/death logic yet.
+
+Add this to philo.h:
+
+```c
+struct s_sim
+{
+	int				philo_count;
+	int				time_to_die;
+	int				time_to_eat;
+	int				time_to_sleep;
+	int				must_eat;
+	long long		start_time_ms;
+	bool			stop;
+	pthread_mutex_t	stop_lock;
+	pthread_mutex_t	print_lock;
+	pthread_mutex_t	state_lock;
+	pthread_mutex_t	*forks;
+	t_philo			*philos;
+	pthread_t		*threads;
+};
+
+int				start_simulation(t_sim *sim);
+```
+
+Create a new file or add this to a small new runtime file, for example philo/srcs/simulation.c:
+
+```c
+#include "philo.h"
+
+static bool	is_stopped(t_sim *sim)
+{
+	bool	stopped;
+
+	pthread_mutex_lock(&sim->stop_lock);
+	stopped = sim->stop;
+	pthread_mutex_unlock(&sim->stop_lock);
+	return (stopped);
+}
+
+static void	*philo_routine(void *arg)
+{
+	t_philo	*philo;
+
+	philo = (t_philo *)arg;
+	while (!is_stopped(philo->sim))
+		usleep(1000);
+	return (NULL);
+}
+
+int	start_simulation(t_sim *sim)
+{
+	int	index;
+
+	sim->threads = malloc(sizeof(pthread_t) * sim->philo_count);
+	if (!sim->threads)
+		return (0);
+	index = 0;
+	while (index < sim->philo_count)
+	{
+		if (pthread_create(&sim->threads[index], NULL, philo_routine,
+				&sim->philos[index]) != 0)
+			return (0);
+		index++;
+	}
+	index = 0;
+	while (index < sim->philo_count)
+	{
+		pthread_join(sim->threads[index], NULL);
+		index++;
+	}
+	free(sim->threads);
+	sim->threads = NULL;
+	return (1);
+}
+```
+
+Then in main.c, after `init_sim`, call:
+
+```c
+if (!start_simulation(&sim))
+{
+	print_error("Error: could not start simulation\n");
+	return (1);
+}
+```
+
+This is intentionally minimal and safe:
+- no real eating logic
+- no death monitor
+- no fork locking yet
+
+It just proves the runtime scaffold is working.

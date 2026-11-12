@@ -23,6 +23,6 @@ fclean: clean
 re: fclean all
 
 test: all
-	./$(NAME) 5 800 200 200
+	./$(NAME) 5 800 200 200 3
 
 .PHONY: all clean fclean re test

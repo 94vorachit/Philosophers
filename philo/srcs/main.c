@@ -6,7 +6,7 @@
 /*   By: vorhansa <vorhansa@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/02 17:37:06 by vorhansa          #+#    #+#             */
-/*   Updated: 2026/11/12 15:40:47 by vorhansa         ###   ########.fr       */
+/*   Updated: 2026/11/12 16:02:16 by vorhansa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -38,6 +38,11 @@ int	main(int ac, char **av)
 	if (!init_sim(&sim))
 	{
 		print_error("Error: simulation initialization failed\n");
+		return (1);
+	}
+	if (!start_simulation(&sim))
+	{
+		print_error("Error: could not start simulation\n");
 		return (1);
 	}
 	return (0);

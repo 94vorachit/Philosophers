@@ -6,7 +6,7 @@
 /*   By: vorhansa <vorhansa@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/02 17:43:45 by vorhansa          #+#    #+#             */
-/*   Updated: 2026/11/12 15:42:22 by vorhansa         ###   ########.fr       */
+/*   Updated: 2026/11/12 16:05:58 by vorhansa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -53,13 +53,19 @@ struct s_sim
 	pthread_mutex_t	state_lock;
 	pthread_mutex_t	*forks;
 	t_philo			*philos;
+
+	pthread_t		*threads;
 };
+
+void		print_error(const char *msg);
+long long	now_ms(void);
 
 size_t		ft_strlen(const char *s);
 long		ft_atoi(const char *str);
-int			init_sim(t_sim *sim);
 int			parse_args(int ac, char **av, t_sim *sim);
-void		print_error(const char *msg);
-long long	now_ms(void);
+
+int			init_sim(t_sim *sim);
+
+int			start_simulation(t_sim *sim);
 
 #endif
