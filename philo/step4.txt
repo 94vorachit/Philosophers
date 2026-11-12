@@ -1,0 +1,35 @@
+## Tiny next step
+
+Add a finite exit condition to the philosopher thread so it terminates naturally instead of looping forever.
+
+Use this as the thread body:
+
+```c
+void	*philo_routine(void *arg)
+{
+	t_philo	*philo;
+	int		count;
+
+	philo = (t_philo *)arg;
+	count = 0;
+	while (count < 3)
+	{
+		usleep(1000);
+		count++;
+	}
+	pthread_mutex_lock(&philo->sim->stop_lock);
+	philo->sim->stop = true;
+	pthread_mutex_unlock(&philo->sim->stop_lock);
+	return (NULL);
+}
+```
+
+This is the smallest safe next step because it gives you:
+- working thread creation
+- successful join
+- no infinite loop
+- no full simulation logic yet
+
+It avoids the hang while keeping the structure ready for the real philosopher cycle afterward.
+
+> The key idea is: every thread must have an exit condition. Without one, `pthread_join()` waits forever.

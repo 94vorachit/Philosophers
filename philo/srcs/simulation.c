@@ -6,7 +6,7 @@
 /*   By: vorhansa <vorhansa@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/11/12 16:00:31 by vorhansa          #+#    #+#             */
-/*   Updated: 2026/11/12 16:09:22 by vorhansa         ###   ########.fr       */
+/*   Updated: 2026/11/12 16:10:57 by vorhansa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,10 +25,18 @@ bool	is_stopped(t_sim *sim)
 void	*philo_routine(void *arg)
 {
 	t_philo	*philo;
+	int		count;
 
 	philo = (t_philo *)arg;
-	while (!is_stopped(philo->sim))
+	count = 0;
+	while (count < 3)
+	{
 		usleep(1000);
+		count++;
+	}
+	pthread_mutex_lock(&philo->sim->stop_lock);
+	philo->sim->stop = true;
+	pthread_mutex_unlock(&philo->sim->stop_lock);
 	return (NULL);
 }
 
