@@ -6,7 +6,7 @@
 /*   By: vorhansa <vorhansa@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/11/12 16:00:31 by vorhansa          #+#    #+#             */
-/*   Updated: 2026/11/12 17:41:59 by vorhansa         ###   ########.fr       */
+/*   Updated: 2026/11/12 17:50:10 by vorhansa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -64,12 +64,26 @@ void	unlock_forks(t_philo *philo)
  */
 void	log_action(t_philo *philo, const char *action)
 {
-    long long	elapsed;
+	long long	elapsed;
 
-    pthread_mutex_lock(&philo->sim->print_lock);
-    elapsed = now_ms() - philo->sim->start_time_ms;
-    printf("%lld %d %s\n", elapsed, philo->id, action);
-    pthread_mutex_unlock(&philo->sim->print_lock);
+	pthread_mutex_lock(&philo->sim->print_lock);
+	elapsed = now_ms() - philo->sim->start_time_ms;
+	printf("%lld %d %s\n", elapsed, philo->id, action);
+	pthread_mutex_unlock(&philo->sim->print_lock);
+}
+
+/**
+ * Add the last_meal_ms update right before the philosopher starts eating.
+ */
+void	eat_action(t_philo *philo)
+{
+	pthread_mutex_lock(&philo->sim->state_lock);
+	philo->last_meal_ms = now_ms();
+	philo->meals_eaten++;
+	pthread_mutex_unlock(&philo->sim->state_lock);
+
+	log_action(philo, "is eating");
+	usleep(philo->sim->time_to_eat * 1000);
 }
 
 void	*philo_routine(void *arg)
@@ -80,11 +94,12 @@ void	*philo_routine(void *arg)
 	while (1)
 	{
 		lock_forks(philo);
-		log_action(philo, "is eating");
-		usleep(philo->sim->time_to_eat * 1000);
+		eat_action(philo);
 		unlock_forks(philo);
+
 		log_action(philo, "is sleeping");
 		usleep(philo->sim->time_to_sleep * 1000);
+
 		log_action(philo, "is thinking");
 	}
 	return (NULL);
@@ -101,27 +116,27 @@ void	*philo_routine(void *arg)
  */
 void	*monitor_routine(void *arg)
 {
-    t_sim	*sim;
-    int		i;
+	t_sim	*sim;
+	int		i;
 
-    sim = (t_sim *)arg;
-    while (1)
-    {
-        i = 0;
-        while (i < sim->philo_count)
-        {
-            if (now_ms() - sim->philos[i].last_meal_ms > sim->time_to_die)
-            {
-                pthread_mutex_lock(&sim->stop_lock);
-                sim->stop = true;
-                pthread_mutex_unlock(&sim->stop_lock);
-                return (NULL);
-            }
-            i++;
-        }
-        usleep(1000);
-    }
-    return (NULL);
+	sim = (t_sim *)arg;
+	while (1)
+	{
+		i = 0;
+		while (i < sim->philo_count)
+		{
+			if (now_ms() - sim->philos[i].last_meal_ms > sim->time_to_die)
+			{
+				pthread_mutex_lock(&sim->stop_lock);
+				sim->stop = true;
+				pthread_mutex_unlock(&sim->stop_lock);
+				return (NULL);
+			}
+			i++;
+		}
+		usleep(1000);
+	}
+	return (NULL);
 }
 
 int	start_simulation(t_sim *sim)

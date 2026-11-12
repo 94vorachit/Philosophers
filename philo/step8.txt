@@ -1,0 +1,41 @@
+## Next step
+
+Add the `last_meal_ms` update right before the philosopher starts eating.
+
+```c
+static void	eat_action(t_philo *philo)
+{
+	pthread_mutex_lock(&philo->sim->state_lock);
+	philo->last_meal_ms = now_ms();
+	philo->meals_eaten++;
+	pthread_mutex_unlock(&philo->sim->state_lock);
+
+	log_action(philo, "is eating");
+	usleep(philo->sim->time_to_eat * 1000);
+}
+```
+
+Then use it in the philosopher loop:
+
+```c
+while (1)
+{
+	lock_forks(philo);
+	eat_action(philo);
+	unlock_forks(philo);
+
+	log_action(philo, "is sleeping");
+	usleep(philo->sim->time_to_sleep * 1000);
+
+	log_action(philo, "is thinking");
+}
+```
+
+### Why this is the next step
+This is the first time the simulation tracks the real philosopher state:
+- `last_meal_ms` becomes meaningful
+- `meals_eaten` starts counting
+- the monitor can now compare time against meals
+- the project is now one small step away from death detection
+
+This is still a focused step: it adds the actual runtime state tracking without finalizing the death check.
