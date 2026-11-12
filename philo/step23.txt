@@ -1,0 +1,102 @@
+The remaining bug is the must-eat condition itself, so I’m narrowing to the exact logic that decides when the simulation should end before the death check fires.
+
+## Next step
+
+The remaining issue is the completion check, not the general death logic. The next fix is to make the must-eat check atomic and do it before the death check in the monitor.
+
+### Replace the current completion helper with this
+
+```c
+int	all_philos_ate(t_sim *sim)
+{
+	int	i;
+
+	i = 0;
+	pthread_mutex_lock(&sim->state_lock);
+	while (i < sim->philo_count)
+	{
+		if (sim->philos[i].meals_eaten < sim->must_eat)
+		{
+			pthread_mutex_unlock(&sim->state_lock);
+			return (0);
+		}
+		i++;
+	}
+	pthread_mutex_unlock(&sim->state_lock);
+	return (1);
+}
+```
+
+### Then make the monitor do this order
+
+```c
+while (!is_stopped(sim))
+{
+	i = 0;
+	while (i < sim->philo_count)
+	{
+		if (sim->must_eat > 0 && all_philos_ate(sim))
+		{
+			set_stop(sim);
+			return (NULL);
+		}
+
+		pthread_mutex_lock(&sim->state_lock);
+		if (now_ms() - sim->philos[i].last_meal_ms > sim->time_to_die)
+		{
+			pthread_mutex_unlock(&sim->state_lock);
+			handle_death(sim, i);
+			return (NULL);
+		}
+		pthread_mutex_unlock(&sim->state_lock);
+		i++;
+	}
+	usleep(1000);
+}
+```
+
+### Why this is the next step
+- it removes the repeated lock pattern that can race with the update of `meals_eaten`
+- it makes the must-eat completion check a true simulation end condition
+- it keeps the death check as a fallback only when completion is not reached
+
+Run:
+- `./philo 5 800 200 200 7`
+- `./philo 4 310 200 100`
+
+If the first exits cleanly and the second still prints a death line, the must-eat logic is fixed.
+
+Replacing 44 lines with 44 lines in [](file:///home/vorhansa/Documents/my_github/Philosophers/philo/srcs/simulation.c)
+
+
+```
+
+```
+
+
+Ran terminal command:  make fclean && make && echo '--- must-eat ---' && timeout 8s ./philo 5 800 200 200 7; echo exit:$? && echo '--- death ---' && timeout 8s ./philo 4 310 200 100; echo exit:$?
+
+## Conclusion
+
+This project is still not fully finished.
+
+### What is verified
+- the build succeeds
+- the death case still works correctly
+- the must-eat case is no longer deadlocking, but it still does not end correctly
+
+### What the fresh evidence shows
+For the must-eat test:
+
+`./philo 5 800 200 200 7`
+
+the program still reaches a death condition and prints:
+
+`2402 5 died`
+
+That means the completion logic is not yet correctly implemented as a true end condition.
+
+### Final answer
+The project is not complete yet. The remaining issue is the must-eat logic, and the next fix is to make the completion condition and death condition work together correctly in the monitor.
+
+Made changes.

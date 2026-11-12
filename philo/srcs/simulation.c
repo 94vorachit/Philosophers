@@ -6,7 +6,7 @@
 /*   By: vorhansa <vorhansa@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/11/12 16:00:31 by vorhansa          #+#    #+#             */
-/*   Updated: 2026/11/12 19:53:50 by vorhansa         ###   ########.fr       */
+/*   Updated: 2026/11/12 19:58:20 by vorhansa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -127,18 +127,18 @@ int	all_philos_ate(t_sim *sim)
 {
 	int	i;
 
+	pthread_mutex_lock(&sim->state_lock);
 	i = 0;
 	while (i < sim->philo_count)
 	{
-		pthread_mutex_lock(&sim->state_lock);
 		if (sim->philos[i].meals_eaten < sim->must_eat)
 		{
 			pthread_mutex_unlock(&sim->state_lock);
 			return (0);
 		}
-		pthread_mutex_unlock(&sim->state_lock);
 		i++;
 	}
+	pthread_mutex_unlock(&sim->state_lock);
 	return (1);
 }
 
