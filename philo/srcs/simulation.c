@@ -6,7 +6,7 @@
 /*   By: vorhansa <vorhansa@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/11/12 16:00:31 by vorhansa          #+#    #+#             */
-/*   Updated: 2026/11/12 16:55:06 by vorhansa         ###   ########.fr       */
+/*   Updated: 2026/11/12 17:02:00 by vorhansa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -47,19 +47,30 @@ static void	set_stop(t_sim *sim)
 	pthread_mutex_unlock(&sim->stop_lock);
 }
 
+static void	lock_forks(t_philo *philo)
+{
+	pthread_mutex_lock(philo->left_lock);
+	pthread_mutex_lock(philo->right_lock);
+}
+
+static void	unlock_forks(t_philo *philo)
+{
+	pthread_mutex_unlock(philo->left_lock);
+	pthread_mutex_unlock(philo->right_lock);
+}
+
 void	*philo_routine(void *arg)
 {
 	t_philo	*philo;
-	int		i;
 
 	philo = (t_philo *)arg;
-	i = 0;
-	while (i < 3 && !is_stopped(philo->sim))
+	while (1)
 	{
-		usleep(1000);
-		i++;
+		lock_forks(philo);
+		usleep(philo->sim->time_to_eat * 1000);
+		unlock_forks(philo);
+		usleep(philo->sim->time_to_sleep * 1000);
 	}
-	set_stop(philo->sim);
 	return (NULL);
 }
 

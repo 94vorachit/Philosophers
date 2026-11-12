@@ -1,0 +1,47 @@
+## Next step
+
+Add a real philosopher loop with:
+- acquire left and right forks
+- eat
+- release forks
+- sleep
+- think
+
+Use this minimal structure:
+
+```c
+static void	lock_forks(t_philo *philo)
+{
+	pthread_mutex_lock(philo->left_lock);
+	pthread_mutex_lock(philo->right_lock);
+}
+
+static void	unlock_forks(t_philo *philo)
+{
+	pthread_mutex_unlock(philo->left_lock);
+	pthread_mutex_unlock(philo->right_lock);
+}
+
+void	*philo_routine(void *arg)
+{
+	t_philo	*philo;
+
+	philo = (t_philo *)arg;
+	while (1)
+	{
+		lock_forks(philo);
+		usleep(philo->sim->time_to_eat * 1000);
+		unlock_forks(philo);
+		usleep(philo->sim->time_to_sleep * 1000);
+	}
+	return (NULL);
+}
+```
+
+### Why this is the right next step
+This is the first real behavioral loop:
+- it matches the philosophers’ core routine
+- it introduces the actual fork ownership logic
+- it is the direct bridge from “thread startup” to the real simulation
+
+One important note: this still does not include the death monitor or must_eat stop rules yet, but it is the first correct runtime pattern.
