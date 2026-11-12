@@ -6,7 +6,7 @@
 /*   By: vorhansa <vorhansa@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/11/12 16:00:31 by vorhansa          #+#    #+#             */
-/*   Updated: 2026/11/12 19:27:57 by vorhansa         ###   ########.fr       */
+/*   Updated: 2026/11/12 19:31:17 by vorhansa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -142,6 +142,22 @@ int	all_philos_ate(t_sim *sim)
 	return (1);
 }
 
+void	handle_death(t_sim *sim, int index)
+{
+	pthread_mutex_lock(&sim->state_lock);
+	if (now_ms() - sim->philos[index].last_meal_ms <= sim->time_to_die)
+	{
+		pthread_mutex_unlock(&sim->state_lock);
+		return ;
+	}
+	pthread_mutex_unlock(&sim->state_lock);
+	pthread_mutex_lock(&sim->print_lock);
+	printf("%lld %d died\n",
+		now_ms() - sim->start_time_ms, sim->philos[index].id);
+	pthread_mutex_unlock(&sim->print_lock);
+	set_stop(sim);
+}
+
 void	*philo_routine(void *arg)
 {
 	t_philo	*philo;
@@ -196,11 +212,7 @@ void	*monitor_routine(void *arg)
 			if (now_ms() - sim->philos[i].last_meal_ms > sim->time_to_die)
 			{
 				pthread_mutex_unlock(&sim->state_lock);
-				pthread_mutex_lock(&sim->print_lock);
-				printf("%lld %d died\n",
-					now_ms() - sim->start_time_ms, sim->philos[i].id);
-				pthread_mutex_unlock(&sim->print_lock);
-				set_stop(sim);
+				handle_death(sim, i);
 				return (NULL);
 			}
 			pthread_mutex_unlock(&sim->state_lock);

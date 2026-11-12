@@ -1,0 +1,92 @@
+I’m checking the current simulation logic and the next missing rule so I can give you the smallest concrete next step instead of a broad rewrite.
+
+Read [](file:///home/vorhansa/Documents/my_github/Philosophers/philo/srcs/simulation.c)
+
+## Next step
+
+The next small step is to factor the death path into one helper and use it from the monitor, instead of doing the print + stop logic inline in simulation.c.
+
+### Why this is the right next step
+It keeps the code clean and makes the death rule consistent:
+- check whether a philosopher is overdue
+- print death once
+- set the simulation stop flag
+- return immediately
+
+### Minimal change
+Add something like:
+
+- `void	handle_death(t_sim *sim, int index)`
+- inside it:
+  1. lock `state_lock`
+  2. compare `now_ms() - sim->philos[index].last_meal_ms`
+  3. if dead:
+     - unlock state
+     - lock print_lock
+     - print death
+     - unlock print_lock
+     - `set_stop(sim)`
+     - return
+  4. otherwise unlock and continue
+
+Then replace the current inline death block in the monitor with a single call to that helper.
+
+### Validate with
+- `./philo 4 310 200 100`
+- `./philo 2 800 200 200`
+
+This is the smallest next correctness step before final cleanup.
+
+I’ll give you the exact small helper to add next, keeping it in the same style as your current simulation code.
+
+## Next code
+
+Add this helper in simulation.c, just before `monitor_routine`:
+
+```c
+void	handle_death(t_sim *sim, int index)
+{
+	pthread_mutex_lock(&sim->state_lock);
+	if (now_ms() - sim->philos[index].last_meal_ms <= sim->time_to_die)
+	{
+		pthread_mutex_unlock(&sim->state_lock);
+		return ;
+	}
+	pthread_mutex_unlock(&sim->state_lock);
+
+	pthread_mutex_lock(&sim->print_lock);
+	printf("%lld %d died\n",
+		now_ms() - sim->start_time_ms, sim->philos[index].id);
+	pthread_mutex_unlock(&sim->print_lock);
+
+	set_stop(sim);
+}
+```
+
+Then replace this block inside the monitor:
+
+```c
+if (now_ms() - sim->philos[i].last_meal_ms > sim->time_to_die)
+{
+	pthread_mutex_unlock(&sim->state_lock);
+	pthread_mutex_lock(&sim->print_lock);
+	printf("%lld %d died\n",
+		now_ms() - sim->start_time_ms, sim->philos[i].id);
+	pthread_mutex_unlock(&sim->print_lock);
+	set_stop(sim);
+	return (NULL);
+}
+```
+
+with this:
+
+```c
+if (now_ms() - sim->philos[i].last_meal_ms > sim->time_to_die)
+{
+	pthread_mutex_unlock(&sim->state_lock);
+	handle_death(sim, i);
+	return (NULL);
+}
+```
+
+This keeps the logic tiny and clean, and matches the pattern you want for the next step.
