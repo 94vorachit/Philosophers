@@ -6,7 +6,7 @@
 /*   By: vorhansa <vorhansa@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/02 17:43:45 by vorhansa          #+#    #+#             */
-/*   Updated: 2026/11/12 17:27:52 by vorhansa         ###   ########.fr       */
+/*   Updated: 2026/11/12 19:21:06 by vorhansa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -68,5 +68,6 @@ int			parse_args(int ac, char **av, t_sim *sim);
 int			init_sim(t_sim *sim);
 
 int			start_simulation(t_sim *sim);
+void		log_action(t_philo *philo, const char *action);
 
 #endif

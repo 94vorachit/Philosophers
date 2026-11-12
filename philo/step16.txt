@@ -1,0 +1,47 @@
+## Next step
+
+Make the fork-pick order deterministic and safe by always taking the lower fork index first.
+
+Replace the current odd/even branch with:
+
+```c
+static void	lock_forks(t_philo *philo)
+{
+	int	first;
+	int	second;
+
+	if (philo->left_fork < philo->right_fork)
+	{
+		first = philo->left_fork;
+		second = philo->right_fork;
+	}
+	else
+	{
+		first = philo->right_fork;
+		second = philo->left_fork;
+	}
+
+	pthread_mutex_lock(&philo->sim->forks[first]);
+	log_action(philo, "has taken a fork");
+	pthread_mutex_lock(&philo->sim->forks[second]);
+	log_action(philo, "has taken a fork");
+}
+```
+
+and keep `unlock_forks` as:
+
+```c
+static void	unlock_forks(t_philo *philo)
+{
+	pthread_mutex_unlock(&philo->left_lock);
+	pthread_mutex_unlock(&philo->right_lock);
+}
+```
+
+### Why this is the next step
+This removes the unsafe fork-order pattern and prevents deadlock in the general case:
+- each philosopher always locks forks in the same global order
+- no circular wait
+- the routine becomes the standard safe philosophers structure
+
+This is the key correctness improvement before final polishing and validation.

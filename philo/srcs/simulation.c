@@ -6,7 +6,7 @@
 /*   By: vorhansa <vorhansa@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/11/12 16:00:31 by vorhansa          #+#    #+#             */
-/*   Updated: 2026/11/12 19:09:38 by vorhansa         ###   ########.fr       */
+/*   Updated: 2026/11/12 19:19:40 by vorhansa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -47,10 +47,30 @@ bool	is_stopped(t_sim *sim)
 // 	pthread_mutex_unlock(&sim->stop_lock);
 // }
 
+/**
+ * Make the fork-pick order deterministic and safe by 
+ * always taking the lower fork index first.
+ */
 void	lock_forks(t_philo *philo)
 {
-	pthread_mutex_lock(philo->left_lock);
-	pthread_mutex_lock(philo->right_lock);
+	int	first;
+	int	second;
+
+	if (philo->left_fork < philo->right_fork)
+	{
+		first = philo->left_fork;
+		second = philo->right_fork;
+	}
+	else
+	{
+		first = philo->right_fork;
+		second = philo->left_fork;
+	}
+
+	pthread_mutex_lock(&philo->sim->forks[first]);
+	log_action(philo, "has taken a fork");
+	pthread_mutex_lock(&philo->sim->forks[second]);
+	log_action(philo, "has taken a fork");
 }
 
 void	unlock_forks(t_philo *philo)
