@@ -34,6 +34,9 @@ timestamp_in_ms X died
 # Resources
 https://github.com/dpetrosy/42-Philosophers/tree/master
 
+## tester
+https://github.com/dantonik/42-philosophers-tester.git
+
 # Additional
 
 ### AI Usage
@@ -44,3 +47,7 @@ GitHub Copilot (GPT-5 mini backend) is used for
 * Used for finding information about micro-optimization, techniques, coding convention.
 
 ### Functions Explained
+
+<p align="center">
+  <a href="https://www.geeksforgeeks.org/c/multithreading-in-c/"><img src="https://media.geeksforgeeks.org/wp-content/uploads/20260409105919761667/frame_1.webp" alt="thread" ></a>
+</p>
