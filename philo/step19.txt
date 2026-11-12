@@ -1,0 +1,48 @@
+I’m looking at the current step file and the active simulation to choose the next smallest correct addition rather than guessing.
+
+Read [](file:///home/vorhansa/Documents/my_github/Philosophers/philo/step18.txt)
+
+Read [](file:///home/vorhansa/Documents/my_github/Philosophers/philo/srcs/simulation.c#1-1), lines 1 to 260
+
+## Next step
+
+The next small improvement is to make every philosopher check the stop condition after each action in simulation.c, not only at the start of the loop.
+
+### Why
+Right now, the monitor can set the stop flag, but a philosopher may still continue into a later action before it notices. That can cause:
+- prints after death
+- extra sleep/thinking after the end
+- a racey shutdown
+
+### Minimal pattern
+Use this structure in the philosopher loop:
+
+```c
+while (!is_stopped(philo->sim))
+{
+	lock_forks(philo);
+	eat_action(philo);
+	unlock_forks(philo);
+
+	if (is_stopped(philo->sim))
+		return (NULL);
+
+	log_action(philo, "is sleeping");
+	usleep(philo->sim->time_to_sleep * 1000);
+
+	if (is_stopped(philo->sim))
+		return (NULL);
+
+	log_action(philo, "is thinking");
+}
+```
+
+This is the last small correctness step before final polish and test runs.
+
+### Validate
+Run:
+- `./philo 4 310 200 100`
+- `./philo 2 800 200 200`
+- `./philo 5 800 200 200 3`
+
+If those behave cleanly, the project is in good shape for the final pass.

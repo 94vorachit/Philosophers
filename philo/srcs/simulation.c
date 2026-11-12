@@ -6,7 +6,7 @@
 /*   By: vorhansa <vorhansa@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/11/12 16:00:31 by vorhansa          #+#    #+#             */
-/*   Updated: 2026/11/12 19:31:17 by vorhansa         ###   ########.fr       */
+/*   Updated: 2026/11/12 19:34:59 by vorhansa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -181,8 +181,16 @@ void	*philo_routine(void *arg)
 		lock_forks(philo);
 		eat_action(philo);
 		unlock_forks(philo);
+
+		if (is_stopped(philo->sim))
+			return (NULL);
+
 		log_action(philo, "is sleeping");
 		usleep(philo->sim->time_to_sleep * 1000);
+
+		if (is_stopped(philo->sim))
+			return (NULL);
+
 		log_action(philo, "is thinking");
 	}
 	return (NULL);
