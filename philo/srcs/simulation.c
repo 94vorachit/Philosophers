@@ -6,7 +6,7 @@
 /*   By: vorhansa <vorhansa@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/11/12 16:00:31 by vorhansa          #+#    #+#             */
-/*   Updated: 2026/11/12 16:52:57 by vorhansa         ###   ########.fr       */
+/*   Updated: 2026/11/12 16:55:06 by vorhansa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,6 +15,11 @@
 /**
  * Add a single helper to read the stop flag safely, and use it in a thread 
  * that exits after a few iterations.
+ * 
+ * it adds safe stop-state checking
+ * it prevents the infinite loop while still using the stop flag
+ * it keeps the thread logic minimal and testable
+ * it is the exact pattern you will reuse in the real philosopher loop later
  */
 static bool	is_stopped(t_sim *sim)
 {
@@ -49,7 +54,7 @@ void	*philo_routine(void *arg)
 
 	philo = (t_philo *)arg;
 	i = 0;
-	while (i < 3)
+	while (i < 3 && !is_stopped(philo->sim))
 	{
 		usleep(1000);
 		i++;
