@@ -65,8 +65,7 @@ size_t		ft_strlen(const char *s);
 long		ft_atoi(const char *str);
 int			parse_args(int ac, char **av, t_sim *sim);
 
-int			init_sim(t_sim *sim);
-
+int			init_sim(t_sim *sim);void	destroy_mutexes(t_sim *sim);
 int			start_simulation(t_sim *sim);
 void		log_action(t_philo *philo, const char *action);
 

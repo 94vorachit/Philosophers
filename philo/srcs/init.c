@@ -24,7 +24,7 @@ static void	init_philo(t_sim *sim, int index)
 	sim->philos[index].sim = sim;
 }
 
-static void	destroy_mutexes(t_sim *sim)
+void	destroy_mutexes(t_sim *sim)
 {
 	int	index;
 
