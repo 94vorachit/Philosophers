@@ -6,70 +6,87 @@
 /*   By: vorhansa <vorhansa@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/11/12 15:00:00 by vorhansa          #+#    #+#             */
-/*   Updated: 2026/11/12 14:51:37 by vorhansa         ###   ########.fr       */
+/*   Updated: 2026/11/12 15:41:54 by vorhansa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "philo.h"
 
-static void	init_philo(t_sim *sim, int idx)
+void	destroy_mutexes(t_sim *sim)
 {
-	sim->philos[idx].id = idx + 1;
-	sim->philos[idx].left_fork = idx;
-	sim->philos[idx].right_fork = (idx + 1) % sim->philo_count;
-	sim->philos[idx].last_meal_ms = sim->start_time_ms;
-	sim->philos[idx].meals_eaten = 0;
-	sim->philos[idx].left_lock = &sim->forks[idx];
-	sim->philos[idx].right_lock = &sim->forks[sim->philos[idx].right_fork];
-	sim->philos[idx].sim = sim;
-}
+	int	index;
 
-static void	destroy_mutexes(t_sim *sim)
-{
-	int	idx;
-
-	idx = 0;
-	while (idx < sim->philo_count)
+	index = 0;
+	while (index < sim->philo_count)
 	{
-		pthread_mutex_destroy(&sim->forks[idx]);
-		idx++;
+		pthread_mutex_destroy(&sim->forks[index]);
+		index++;
 	}
 	pthread_mutex_destroy(&sim->print_lock);
 	pthread_mutex_destroy(&sim->state_lock);
 	pthread_mutex_destroy(&sim->stop_lock);
 }
 
-int	init_sim(t_sim *sim)
+int	init_shared_mutexes(t_sim *sim)
 {
-	int	idx;
-
-	sim->start_time_ms = now_ms();
-	sim->stop = false;
-	sim->philos = malloc(sizeof(t_philo) * sim->philo_count);
-	sim->forks = malloc(sizeof(pthread_mutex_t) * sim->philo_count);
-	if (!sim->philos || !sim->forks)
-		return (0);
 	if (pthread_mutex_init(&sim->print_lock, NULL) != 0)
 		return (0);
 	if (pthread_mutex_init(&sim->state_lock, NULL) != 0)
 		return (0);
 	if (pthread_mutex_init(&sim->stop_lock, NULL) != 0)
 		return (0);
-	idx = 0;
-	while (idx < sim->philo_count)
+	return (1);
+}
+
+int	init_forks(t_sim *sim)
+{
+	int	index;
+
+	index = 0;
+	while (index < sim->philo_count)
 	{
-		if (pthread_mutex_init(&sim->forks[idx], NULL) != 0)
+		if (pthread_mutex_init(&sim->forks[index], NULL) != 0)
 		{
 			destroy_mutexes(sim);
 			return (0);
 		}
-		idx++;
+		index++;
 	}
-	idx = 0;
-	while (idx < sim->philo_count)
+	return (1);
+}
+
+void	init_philos(t_sim *sim)
+{
+	int	index;
+
+	index = 0;
+	while (index < sim->philo_count)
 	{
-		init_philo(sim, idx);
-		idx++;
+		sim->philos[index].id = index + 1;
+		sim->philos[index].left_fork = index;
+		sim->philos[index].right_fork = (index + 1) % sim->philo_count;
+		sim->philos[index].last_meal_ms = sim->start_time_ms;
+		sim->philos[index].meals_eaten = 0;
+		sim->philos[index].left_lock = &sim->forks[index];
+		sim->philos[index].right_lock
+			= &sim->forks[sim->philos[index].right_fork];
+		sim->philos[index].sim = sim;
+		index++;
 	}
+}
+
+int	init_sim(t_sim *sim)
+{
+	sim->start_time_ms = now_ms();
+	sim->stop = false;
+	sim->philos = malloc(sizeof(t_philo) * sim->philo_count);
+	sim->forks = malloc(sizeof(pthread_mutex_t) * sim->philo_count);
+	if (!sim->philos || !sim->forks)
+		return (0);
+	if (!init_shared_mutexes(sim))
+		return (0);
+	if (!init_forks(sim))
+		return (0);
+	init_philos(sim);
 	return (1);
 }
