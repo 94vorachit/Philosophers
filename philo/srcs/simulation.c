@@ -6,7 +6,7 @@
 /*   By: vorhansa <vorhansa@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/11/12 16:00:31 by vorhansa          #+#    #+#             */
-/*   Updated: 2026/11/12 17:02:00 by vorhansa         ###   ########.fr       */
+/*   Updated: 2026/11/12 17:28:21 by vorhansa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,15 +21,15 @@
  * it keeps the thread logic minimal and testable
  * it is the exact pattern you will reuse in the real philosopher loop later
  */
-static bool	is_stopped(t_sim *sim)
-{
-	bool	stopped;
+// bool	is_stopped(t_sim *sim)
+// {
+// 	bool	stopped;
 
-	pthread_mutex_lock(&sim->stop_lock);
-	stopped = sim->stop;
-	pthread_mutex_unlock(&sim->stop_lock);
-	return (stopped);
-}
+// 	pthread_mutex_lock(&sim->stop_lock);
+// 	stopped = sim->stop;
+// 	pthread_mutex_unlock(&sim->stop_lock);
+// 	return (stopped);
+// }
 
 /**
  * Add one small helper that sets the stop flag after a short finite loop, 
@@ -40,20 +40,20 @@ static bool	is_stopped(t_sim *sim)
  * it keeps the logic completely separate from eating/death rules
  * it is the exact “exit condition” pattern the real simulation will need later
  */
-static void	set_stop(t_sim *sim)
-{
-	pthread_mutex_lock(&sim->stop_lock);
-	sim->stop = true;
-	pthread_mutex_unlock(&sim->stop_lock);
-}
+// void	set_stop(t_sim *sim)
+// {
+// 	pthread_mutex_lock(&sim->stop_lock);
+// 	sim->stop = true;
+// 	pthread_mutex_unlock(&sim->stop_lock);
+// }
 
-static void	lock_forks(t_philo *philo)
+void	lock_forks(t_philo *philo)
 {
 	pthread_mutex_lock(philo->left_lock);
 	pthread_mutex_lock(philo->right_lock);
 }
 
-static void	unlock_forks(t_philo *philo)
+void	unlock_forks(t_philo *philo)
 {
 	pthread_mutex_unlock(philo->left_lock);
 	pthread_mutex_unlock(philo->right_lock);
@@ -74,12 +74,48 @@ void	*philo_routine(void *arg)
 	return (NULL);
 }
 
+/**
+ * Add the monitor thread before the full death logic, 
+ * with a very small fatal check.
+ * 
+ * This is the first real monitor loop:
+ * * it watches each philosopher
+ * * it transitions the simulation to stop
+ * * it is the foundation for the actual death detection logic
+ */
+void	*monitor_routine(void *arg)
+{
+    t_sim	*sim;
+    int		i;
+
+    sim = (t_sim *)arg;
+    while (1)
+    {
+        i = 0;
+        while (i < sim->philo_count)
+        {
+            if (now_ms() - sim->philos[i].last_meal_ms > sim->time_to_die)
+            {
+                pthread_mutex_lock(&sim->stop_lock);
+                sim->stop = true;
+                pthread_mutex_unlock(&sim->stop_lock);
+                return (NULL);
+            }
+            i++;
+        }
+        usleep(1000);
+    }
+    return (NULL);
+}
+
 int	start_simulation(t_sim *sim)
 {
 	int	index;
 
 	sim->threads = malloc(sizeof(pthread_t) * sim->philo_count);
 	if (!sim->threads)
+		return (0);
+	if (pthread_create(&sim->monitor, NULL, monitor_routine, sim) != 0)
 		return (0);
 	index = 0;
 	while (index < sim->philo_count)

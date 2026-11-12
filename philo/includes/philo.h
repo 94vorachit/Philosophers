@@ -6,7 +6,7 @@
 /*   By: vorhansa <vorhansa@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/02 17:43:45 by vorhansa          #+#    #+#             */
-/*   Updated: 2026/11/12 16:05:58 by vorhansa         ###   ########.fr       */
+/*   Updated: 2026/11/12 17:27:52 by vorhansa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -55,6 +55,7 @@ struct s_sim
 	t_philo			*philos;
 
 	pthread_t		*threads;
+	pthread_t		monitor;
 };
 
 void		print_error(const char *msg);
