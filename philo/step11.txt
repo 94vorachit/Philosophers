@@ -1,0 +1,43 @@
+## Next step
+
+Add the completion condition for `must_eat` in the monitor.
+
+```c
+static int	all_philos_ate(t_sim *sim)
+{
+	int	i;
+
+	i = 0;
+	while (i < sim->philo_count)
+	{
+		pthread_mutex_lock(&sim->state_lock);
+		if (sim->philos[i].meals_eaten < sim->must_eat)
+		{
+			pthread_mutex_unlock(&sim->state_lock);
+			return (0);
+		}
+		pthread_mutex_unlock(&sim->state_lock);
+		i++;
+	}
+	return (1);
+}
+```
+
+Then in the monitor loop:
+
+```c
+if (sim->must_eat > 0 && all_philos_ate(sim))
+{
+	pthread_mutex_lock(&sim->stop_lock);
+	sim->stop = true;
+	pthread_mutex_unlock(&sim->stop_lock);
+	return (NULL);
+}
+```
+
+### Why this is the next step
+This adds the second real ending condition from the project rules:
+- death ends the simulation
+- satisfying `must_eat` also ends it
+
+It keeps the logic focused on the monitor and avoids moving to cleanup or edge-case polishing yet.

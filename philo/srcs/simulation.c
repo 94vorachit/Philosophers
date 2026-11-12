@@ -6,7 +6,7 @@
 /*   By: vorhansa <vorhansa@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/11/12 16:00:31 by vorhansa          #+#    #+#             */
-/*   Updated: 2026/11/12 18:27:29 by vorhansa         ###   ########.fr       */
+/*   Updated: 2026/11/12 18:36:39 by vorhansa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -86,6 +86,28 @@ void	eat_action(t_philo *philo)
 	usleep(philo->sim->time_to_eat * 1000);
 }
 
+/**
+ * Add the completion condition for must_eat in the monitor.
+ */
+int	all_philos_ate(t_sim *sim)
+{
+    int	i;
+
+    i = 0;
+    while (i < sim->philo_count)
+    {
+        pthread_mutex_lock(&sim->state_lock);
+        if (sim->philos[i].meals_eaten < sim->must_eat)
+        {
+            pthread_mutex_unlock(&sim->state_lock);
+            return (0);
+        }
+        pthread_mutex_unlock(&sim->state_lock);
+        i++;
+    }
+    return (1);
+}
+
 void	*philo_routine(void *arg)
 {
 	t_philo	*philo;
@@ -140,6 +162,13 @@ void	*monitor_routine(void *arg)
 			}
 			pthread_mutex_unlock(&sim->state_lock);
 			i++;
+			if (sim->must_eat > 0 && all_philos_ate(sim))
+			{
+				pthread_mutex_lock(&sim->stop_lock);
+				sim->stop = true;
+				pthread_mutex_unlock(&sim->stop_lock);
+				return (NULL);
+			}
 		}
 		usleep(1000);
 	}
