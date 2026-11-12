@@ -6,13 +6,17 @@
 /*   By: vorhansa <vorhansa@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/11/12 16:00:31 by vorhansa          #+#    #+#             */
-/*   Updated: 2026/11/12 16:10:57 by vorhansa         ###   ########.fr       */
+/*   Updated: 2026/11/12 16:52:57 by vorhansa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "philo.h"
 
-bool	is_stopped(t_sim *sim)
+/**
+ * Add a single helper to read the stop flag safely, and use it in a thread 
+ * that exits after a few iterations.
+ */
+static bool	is_stopped(t_sim *sim)
 {
 	bool	stopped;
 
@@ -22,21 +26,35 @@ bool	is_stopped(t_sim *sim)
 	return (stopped);
 }
 
+/**
+ * Add one small helper that sets the stop flag after a short finite loop, 
+ * then the philosopher thread exits normally.
+ * 
+ * it avoids the infinite wait
+ * it proves the thread can terminate
+ * it keeps the logic completely separate from eating/death rules
+ * it is the exact “exit condition” pattern the real simulation will need later
+ */
+static void	set_stop(t_sim *sim)
+{
+	pthread_mutex_lock(&sim->stop_lock);
+	sim->stop = true;
+	pthread_mutex_unlock(&sim->stop_lock);
+}
+
 void	*philo_routine(void *arg)
 {
 	t_philo	*philo;
-	int		count;
+	int		i;
 
 	philo = (t_philo *)arg;
-	count = 0;
-	while (count < 3)
+	i = 0;
+	while (i < 3)
 	{
 		usleep(1000);
-		count++;
+		i++;
 	}
-	pthread_mutex_lock(&philo->sim->stop_lock);
-	philo->sim->stop = true;
-	pthread_mutex_unlock(&philo->sim->stop_lock);
+	set_stop(philo->sim);
 	return (NULL);
 }
 
