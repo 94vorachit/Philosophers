@@ -1,0 +1,38 @@
+## Next step
+
+Add the log function and print each action with a timestamp.
+
+```c
+static void	log_action(t_philo *philo, const char *action)
+{
+	long long	elapsed;
+
+	pthread_mutex_lock(&philo->sim->print_lock);
+	elapsed = now_ms() - philo->sim->start_time_ms;
+	printf("%lld %d %s\n", elapsed, philo->id, action);
+	pthread_mutex_unlock(&philo->sim->print_lock);
+}
+```
+
+Then use it inside the philosopher loop:
+
+```c
+while (1)
+{
+	lock_forks(philo);
+	log_action(philo, "is eating");
+	usleep(philo->sim->time_to_eat * 1000);
+	unlock_forks(philo);
+	log_action(philo, "is sleeping");
+	usleep(philo->sim->time_to_sleep * 1000);
+	log_action(philo, "is thinking");
+}
+```
+
+### Why this is the next step
+This is the transition from “working threads” to “real philosopher behavior”:
+- the simulation now emits the required output format
+- it keeps the print stream synchronized
+- it prepares the project for final death and completion logic
+
+This is still a small, focused step: printing is added, but the stop condition and death check are not yet fully finalized.

@@ -6,7 +6,7 @@
 /*   By: vorhansa <vorhansa@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/11/12 16:00:31 by vorhansa          #+#    #+#             */
-/*   Updated: 2026/11/12 17:28:21 by vorhansa         ###   ########.fr       */
+/*   Updated: 2026/11/12 17:41:59 by vorhansa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -59,6 +59,19 @@ void	unlock_forks(t_philo *philo)
 	pthread_mutex_unlock(philo->right_lock);
 }
 
+/**
+ * Add the log function and print each action with a timestamp.
+ */
+void	log_action(t_philo *philo, const char *action)
+{
+    long long	elapsed;
+
+    pthread_mutex_lock(&philo->sim->print_lock);
+    elapsed = now_ms() - philo->sim->start_time_ms;
+    printf("%lld %d %s\n", elapsed, philo->id, action);
+    pthread_mutex_unlock(&philo->sim->print_lock);
+}
+
 void	*philo_routine(void *arg)
 {
 	t_philo	*philo;
@@ -67,9 +80,12 @@ void	*philo_routine(void *arg)
 	while (1)
 	{
 		lock_forks(philo);
+		log_action(philo, "is eating");
 		usleep(philo->sim->time_to_eat * 1000);
 		unlock_forks(philo);
+		log_action(philo, "is sleeping");
 		usleep(philo->sim->time_to_sleep * 1000);
+		log_action(philo, "is thinking");
 	}
 	return (NULL);
 }
