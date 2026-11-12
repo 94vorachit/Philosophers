@@ -6,7 +6,7 @@
 /*   By: vorhansa <vorhansa@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/02 17:43:45 by vorhansa          #+#    #+#             */
-/*   Updated: 2026/11/12 19:21:06 by vorhansa         ###   ########.fr       */
+/*   Updated: 2026/11/12 20:24:15 by vorhansa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -65,8 +65,10 @@ size_t		ft_strlen(const char *s);
 long		ft_atoi(const char *str);
 int			parse_args(int ac, char **av, t_sim *sim);
 
-int			init_sim(t_sim *sim);void	destroy_mutexes(t_sim *sim);
+int			init_sim(t_sim *sim);
+void	destroy_mutexes(t_sim *sim);
 int			start_simulation(t_sim *sim);
-void		log_action(t_philo *philo, const char *action);
+// void		log_action(t_philo *philo, const char *action);
+void	log_action(t_philo *philo, const char *msg);
 
 #endif
