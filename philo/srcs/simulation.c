@@ -6,7 +6,7 @@
 /*   By: vorhansa <vorhansa@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/11/12 16:00:31 by vorhansa          #+#    #+#             */
-/*   Updated: 2026/11/12 19:58:20 by vorhansa         ###   ########.fr       */
+/*   Updated: 2026/11/12 20:05:54 by vorhansa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -213,14 +213,14 @@ void	*monitor_routine(void *arg)
 	sim = (t_sim *)arg;
 	while (!is_stopped(sim))
 	{
+		if (sim->must_eat > 0 && all_philos_ate(sim))
+		{
+			set_stop(sim);
+			return (NULL);
+		}
 		i = 0;
 		while (i < sim->philo_count)
 		{
-			if (sim->must_eat > 0 && all_philos_ate(sim))
-			{
-				set_stop(sim);
-				return (NULL);
-			}
 			pthread_mutex_lock(&sim->state_lock);
 			if (now_ms() - sim->philos[i].last_meal_ms > sim->time_to_die)
 			{
