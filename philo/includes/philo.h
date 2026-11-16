@@ -6,7 +6,7 @@
 /*   By: vorhansa <vorhansa@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/02 17:43:45 by vorhansa          #+#    #+#             */
-/*   Updated: 2026/11/16 17:39:15 by vorhansa         ###   ########.fr       */
+/*   Updated: 2026/11/16 19:05:00 by vorhansa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -73,6 +73,14 @@ long		ft_atoi(const char *str);
 int			parse_args(int ac, char **av, t_sim *sim);
 
 int			start_simulation(t_sim *sim);
+bool		is_stopped(t_sim *sim);
+void		set_stopped(t_sim *sim);
+void		custom_usleep(long long ms, t_sim *sim);
+void		lock_forks(t_philo *philo);
+void		unlock_forks(t_philo *philo);
 void		log_action(t_philo *philo, const char *msg);
+
+void		*philo_routine(void *arg);
+void		*monitor_routine(void *arg);
 
 #endif
