@@ -6,7 +6,7 @@
 /*   By: vorhansa <vorhansa@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/02 17:43:45 by vorhansa          #+#    #+#             */
-/*   Updated: 2026/11/16 14:44:30 by vorhansa         ###   ########.fr       */
+/*   Updated: 2026/11/16 17:19:14 by vorhansa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,7 +25,7 @@
 
 # define PHILO_MAX_COUNT 200
 
-typedef struct s_sim t_sim;
+typedef struct s_sim	t_sim;
 
 typedef struct s_philo
 {
@@ -47,17 +47,18 @@ struct s_sim
 	int				time_to_sleep;
 	int				must_eat;
 	long long		start_time_ms;
-	bool			stop;	bool		print_lock_init;
-	bool		state_lock_init;
-	bool		stop_lock_init;
-	int			forks_init_count;	pthread_mutex_t	stop_lock;
+	bool			stop;
+	bool			print_lock_init;
+	bool			state_lock_init;
+	bool			stop_lock_init;
+	int				forks_init_count;
+	pthread_mutex_t	stop_lock;
 	pthread_mutex_t	print_lock;
 	pthread_mutex_t	state_lock;
 	pthread_mutex_t	*forks;
-	t_philo			*philos;
-
 	pthread_t		*threads;
 	pthread_t		monitor;
+	t_philo			*philos;
 };
 
 void		print_error(const char *msg);
@@ -68,9 +69,9 @@ long		ft_atoi(const char *str);
 int			parse_args(int ac, char **av, t_sim *sim);
 
 int			init_sim(t_sim *sim);
-void	destroy_mutexes(t_sim *sim);
+void		destroy_mutexes(t_sim *sim);
 int			start_simulation(t_sim *sim);
 // void		log_action(t_philo *philo, const char *action);
-void	log_action(t_philo *philo, const char *msg);
+void		log_action(t_philo *philo, const char *msg);
 
 #endif
