@@ -6,7 +6,7 @@
 /*   By: vorhansa <vorhansa@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/02 17:43:45 by vorhansa          #+#    #+#             */
-/*   Updated: 2026/11/12 20:24:15 by vorhansa         ###   ########.fr       */
+/*   Updated: 2026/11/16 14:44:30 by vorhansa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -47,8 +47,10 @@ struct s_sim
 	int				time_to_sleep;
 	int				must_eat;
 	long long		start_time_ms;
-	bool			stop;
-	pthread_mutex_t	stop_lock;
+	bool			stop;	bool		print_lock_init;
+	bool		state_lock_init;
+	bool		stop_lock_init;
+	int			forks_init_count;	pthread_mutex_t	stop_lock;
 	pthread_mutex_t	print_lock;
 	pthread_mutex_t	state_lock;
 	pthread_mutex_t	*forks;

@@ -6,7 +6,7 @@
 /*   By: vorhansa <vorhansa@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/11/12 16:00:31 by vorhansa          #+#    #+#             */
-/*   Updated: 2026/11/12 22:29:58 by vorhansa         ###   ########.fr       */
+/*   Updated: 2026/11/16 17:03:35 by vorhansa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -365,10 +365,15 @@ static void	*philo_routine(void *arg)
 		pthread_mutex_unlock(philo->left_lock);
 		if (!is_stopped(philo->sim))
 		{
-			set_stopped(philo->sim);
 			pthread_mutex_lock(&philo->sim->print_lock);
-			printf("%lld %d died\n",
-				now_ms() - philo->sim->start_time_ms, philo->id);
+			pthread_mutex_lock(&philo->sim->stop_lock);
+			if (!philo->sim->stop)
+			{
+				philo->sim->stop = true;
+				printf("%lld %d died\n",
+					now_ms() - philo->sim->start_time_ms, philo->id);
+			}
+			pthread_mutex_unlock(&philo->sim->stop_lock);
 			pthread_mutex_unlock(&philo->sim->print_lock);
 		}
 		return (NULL);
@@ -439,10 +444,15 @@ static void	*monitor_routine(void *arg)
 			if (now - sim->philos[index].last_meal_ms > sim->time_to_die)
 			{
 				pthread_mutex_unlock(&sim->state_lock);
-				set_stopped(sim);
 				pthread_mutex_lock(&sim->print_lock);
-				printf("%lld %d died\n",
-					now - sim->start_time_ms, sim->philos[index].id);
+				pthread_mutex_lock(&sim->stop_lock);
+				if (!sim->stop)
+				{
+					sim->stop = true;
+					printf("%lld %d died\n",
+						now - sim->start_time_ms, sim->philos[index].id);
+				}
+				pthread_mutex_unlock(&sim->stop_lock);
 				pthread_mutex_unlock(&sim->print_lock);
 				return (NULL);
 			}
@@ -462,13 +472,28 @@ int	start_simulation(t_sim *sim)
 	if (!sim->threads)
 		return (0);
 	if (pthread_create(&sim->monitor, NULL, monitor_routine, sim) != 0)
+	{
+		free(sim->threads);
+		sim->threads = NULL;
 		return (0);
+	}
 	index = 0;
 	while (index < sim->philo_count)
 	{
 		if (pthread_create(&sim->threads[index], NULL, philo_routine,
 				&sim->philos[index]) != 0)
+		{
+			set_stopped(sim);
+			pthread_join(sim->monitor, NULL);
+			while (index > 0)
+			{
+				index--;
+				pthread_join(sim->threads[index], NULL);
+			}
+			free(sim->threads);
+			sim->threads = NULL;
 			return (0);
+		}
 		index++;
 	}
 	index = 0;
