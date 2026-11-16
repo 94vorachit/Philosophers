@@ -1,0 +1,189 @@
+## Why the single philosopher dies
+
+This is expected behavior in the dining philosophers problem.
+
+- A philosopher must hold 2 forks to eat.
+- With 1 philosopher, there is only 1 fork available.
+- So the philosopher can never start eating, and never updates his last meal time.
+- The death check compares:
+  - current time - last_meal_time
+  - against time_to_die
+- Since last_meal_time is initialized at start and no meal ever happens, after 800 ms the simulation marks him dead.
+
+That exact special-case logic is visible in simulation.c: when the philosopher count is 1, the code locks one fork, waits for time_to_die, then prints “died”.
+
+So for input:
+
+1 800 200 200 10
+
+the result is:
+
+1 died
+
+because:
+
+- the philosopher cannot pick up 2 forks
+- eating never happens
+- the 800 ms deadline expires
+- the simulation ends by death
+
+> The must_eat value of 10 is also impossible here, because one philosopher can never eat at all with only one fork.
+
+# 3 599 200 200 5
+
+I’m checking the exact timing logic against your log ordering to answer whether that death is valid or whether the implementation is miscounting “last meal.”
+
+## Yes — in that trace, the death is logically correct
+
+The key rule is:
+
+- a philosopher dies when:
+  now_ms() - last_meal_ms > time_to_die
+
+not when:
+- “he is waiting for a fork”
+- “he is sleeping”
+- “he has not started eating yet”
+
+So in your sequence:
+
+- philosopher 1 last ate at 0
+- at 600, he still has not eaten again
+- time_to_die = 599
+
+Then:
+
+- 600 - 0 = 600
+- 600 > 599
+
+So he should die at 600.
+
+That matches the rule exactly.
+
+---
+
+## Why your log still makes sense
+
+Your trace says:
+
+- 0: 1 eats
+- 200: 1 sleeps
+- 400: 1 is thinking / trying to get fork
+- 600: 1 died
+
+This means philosopher 1 went 600 ms without eating.
+
+Even if he was “waiting for a fork,” he is still considered dead once the timeout is exceeded.
+
+The fork availability matters only for whether he can eat again, but the death check does not care whether he is waiting or holding a fork. It only cares how long it has been since his last meal.
+
+---
+
+## Important distinction
+
+This is the subtle point:
+
+- A philosopher can die while waiting for forks.
+- He does not need to be actively eating to trigger death.
+- If he has not eaten for longer than time_to_die, the monitor is allowed to print “died”.
+
+So your thought:
+
+> “He waited until 600 and did not start eating yet, so he must have died”
+
+is correct, assuming the last meal was indeed at 0 and no later meal was recorded.
+
+---
+
+## One more note
+
+For the case:
+
+- 3 599 200 200 5
+
+this is a borderline scenario. In a correct implementation, philosophers should rotate enough that no one starves. If your program prints death here, that usually means the simulation is not scheduling/fairness correctly, or last_meal is not being updated at the right moment.
+
+But based on the log you showed, the death at 600 is valid under the raw timing rule.
+
+If you want, I can also show exactly how the monitor should calculate the death condition step by step in this example.
+
+# Classic deadlock / Blocking race
+
+## Why it happens
+
+The main reason is a classic deadlock / blocking race in the philosopher locking logic.
+
+In simulation.c, when a philosopher dies, the monitor does this:
+
+- sets the stop flag
+- prints the death message
+- returns
+
+But a philosopher thread may still be stuck inside `pthread_mutex_lock(...)` while trying to take a fork. That lock is blocking, and once a thread is blocked, it cannot check the stop flag until it actually gets the lock.
+
+So this can happen:
+
+1. One philosopher dies and the monitor sets `stop = true`.
+2. Another philosopher is waiting on a fork lock.
+3. That waiting thread never wakes up because it is blocked in `pthread_mutex_lock`.
+4. The main program reaches the join loop in main.c and waits forever for that thread.
+5. The process appears to “not exit” even though one philosopher already died.
+
+This is why it happens “sometimes”: it depends on timing and which thread happens to be blocked when the death is detected.
+
+---
+
+## The real bug pattern
+
+The problematic part is the fork acquisition in simulation.c:
+
+- `lock_forks()`
+- then `pthread_mutex_lock(left_lock)`
+- then `pthread_mutex_lock(right_lock)`
+
+If the philosopher is already blocked here, the stop flag is useless.
+
+---
+
+## How to fix it
+
+Use a non-blocking lock strategy after death is detected.
+
+### Recommended fix
+Instead of blocking forever on `pthread_mutex_lock`, use `pthread_mutex_trylock` in a loop:
+
+- try to lock left fork
+- if fail, check `is_stopped(sim)`
+- if stopped, exit immediately
+- retry after a short `usleep`
+- do the same for right fork
+
+This way, when death is detected, the thread can stop even while waiting for forks.
+
+### Important rule
+The stop flag must be checked before and after every fork attempt.
+
+Pseudo logic:
+
+- while (!is_stopped(sim))
+  - if (pthread_mutex_trylock(left) == 0)
+    - if (pthread_mutex_trylock(right) == 0)
+      - break
+    - else unlock left and retry
+  - usleep(100)
+
+That prevents threads from hanging forever in the lock wait.
+
+---
+
+## Also important
+
+In your project, the monitor is setting the stop flag, but some threads are still allowed to keep running while blocked in `lock_forks()`. The fix is to make lock acquisition interruptible by the stop condition.
+
+---
+
+## In one sentence
+
+The program does not always exit after death because some philosopher threads are still blocked forever on mutex locks, and a blocked `pthread_mutex_lock` cannot notice the stop flag. The fix is to use try-lock + stop-check logic instead of blocking lock calls.
+
+If you want, I can show you the exact patch for simulation.c to stop this hang.
