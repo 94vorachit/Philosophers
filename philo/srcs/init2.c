@@ -6,7 +6,7 @@
 /*   By: vorhansa <vorhansa@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/11/16 17:36:16 by vorhansa          #+#    #+#             */
-/*   Updated: 2026/11/17 15:10:06 by vorhansa         ###   ########.fr       */
+/*   Updated: 2026/11/17 15:18:52 by vorhansa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -92,11 +92,11 @@ int	alloc_sim(t_sim *sim)
 
 /**
  * The usual flow is:
- * 1. alloc_sim(sim)
+ * 1. `alloc_sim(sim)`
  * * create memory for philosopher list and fork mutexes
  * 2. initialize the shared locks
  * 3. initialize each fork mutex
  * 4. initialize each philosopher using init_philo(...)
  * 5. run the simulation
- * 6. call destroy_mutexes(sim) to clean everything up
+ * 6. call `destroy_mutexes(sim)` to clean everything up
  */
