@@ -6,7 +6,7 @@
 /*   By: vorhansa <vorhansa@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/02 17:43:45 by vorhansa          #+#    #+#             */
-/*   Updated: 2026/11/16 19:05:00 by vorhansa         ###   ########.fr       */
+/*   Updated: 2026/11/17 16:28:16 by vorhansa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -61,26 +61,29 @@ struct s_sim
 	t_philo			*philos;
 };
 
+/*init*/
+int			init_sim(t_sim *sim);
+/*init2*/
 void		destroy_mutexes(t_sim *sim);
 int			alloc_sim(t_sim *sim);
-int			init_sim(t_sim *sim);
-
-void		print_error(const char *msg);
+/*main*/
 long long	now_ms(void);
-
+/*utils*/
 size_t		ft_strlen(const char *s);
 long		ft_atoi(const char *str);
 int			parse_args(int ac, char **av, t_sim *sim);
-
+/*simulation*/
 int			start_simulation(t_sim *sim);
+/*sim_utils*/
 bool		is_stopped(t_sim *sim);
 void		set_stopped(t_sim *sim);
 void		custom_usleep(long long ms, t_sim *sim);
 void		lock_forks(t_philo *philo);
 void		unlock_forks(t_philo *philo);
+/*sim_action*/
 void		log_action(t_philo *philo, const char *msg);
-
 void		*philo_routine(void *arg);
+/*sim_monitor*/
 void		*monitor_routine(void *arg);
 
 #endif
