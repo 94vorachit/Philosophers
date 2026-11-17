@@ -6,7 +6,7 @@
 /*   By: vorhansa <vorhansa@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/11/12 15:00:00 by vorhansa          #+#    #+#             */
-/*   Updated: 2026/11/16 18:04:16 by vorhansa         ###   ########.fr       */
+/*   Updated: 2026/11/17 15:08:22 by vorhansa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -169,3 +169,21 @@ int	init_sim(t_sim *sim)
 	}
 	return (1);
 }
+
+/**
+ * Overall workflow
+ * 
+ * 1. Prepare the simulation state
+ * 2. Allocate memory
+ * 3. Create all mutexes
+ * 4. Create each fork mutex
+ * 5. Assign each philosopher:
+ * * its ID
+ * * left/right fork
+ * * pointer to the shared simulation
+ * * starting meal timestamp
+ * 6. Return ready-to-run simulation state
+ * 
+ * That means by the time this file finishes, all philosophers and resources 
+ * are ready and the threads can safely start using them.
+ */

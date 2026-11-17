@@ -6,7 +6,7 @@
 /*   By: vorhansa <vorhansa@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/02 17:37:06 by vorhansa          #+#    #+#             */
-/*   Updated: 2026/11/16 18:37:55 by vorhansa         ###   ########.fr       */
+/*   Updated: 2026/11/17 14:58:15 by vorhansa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -162,3 +162,10 @@ int	main(int ac, char **av)
 	cleanup_sim(&sim);
 	return (0);
 }
+
+/**
+ * This file is the control center of the philosophers program:
+ * 
+ * it validates input, initializes the simulation, starts the threads, 
+ * and cleans everything up safely afterward.
+ */
