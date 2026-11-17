@@ -6,7 +6,7 @@
 /*   By: vorhansa <vorhansa@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/11/16 19:02:07 by vorhansa          #+#    #+#             */
-/*   Updated: 2026/11/17 14:31:28 by vorhansa         ###   ########.fr       */
+/*   Updated: 2026/11/17 14:56:48 by vorhansa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -172,12 +172,12 @@ void	philo_cycle(t_philo *philo)
  * Purpose: This is the thread entry point for each philosopher.
  * 
  * How it works:
- * 1. It casts the void pointer back to t_philo *
+ * 1. It casts the void pointer back to `t_philo *`
  * 2. If philosopher id is even, it waits a tiny bit:
- * * custom_usleep(1, philo->sim)
+ * * `custom_usleep(1, philo->sim)`
  * * this helps avoid deadlock timing issues
- * 3. If philo_count == 1, it calls single_philo_case
- * 4. Otherwise it runs philo_cycle
+ * 3. If `philo_count == 1`, it calls `single_philo_case`
+ * 4. Otherwise it runs `philo_cycle`
  * 
  * So each philosopher thread starts here, and then follows the repeating cycle.
  */
@@ -196,3 +196,26 @@ void	*philo_routine(void *arg)
 	philo_cycle(philo);
 	return (NULL);
 }
+
+/**
+ * How the whole simulation fits together
+ * 
+ * The flow is:
+ * 1. start_simulation() in simulation.c
+ * * creates a monitor thread
+ * * creates one thread per philosopher
+ * 2. Each philosopher runs philo_routine()
+ * * it takes forks, eats, sleeps, thinks
+ * 3. The monitor thread in sim_monitor.c
+ * * checks if someone died
+ * * checks if all philosophers have eaten enough
+ * * sets sim->stop = true when needed
+ * 4. Helper functions in sim_utils.c
+ * is_stopped()
+ * set_stopped()
+ * custom_usleep()
+ * lock_forks()
+ * unlock_forks()
+ * 
+ * These helpers make the logic safe under concurrency.
+ */
