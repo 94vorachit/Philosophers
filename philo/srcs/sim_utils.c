@@ -6,7 +6,7 @@
 /*   By: vorhansa <vorhansa@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/11/16 18:41:15 by vorhansa          #+#    #+#             */
-/*   Updated: 2026/11/17 14:53:44 by vorhansa         ###   ########.fr       */
+/*   Updated: 2026/11/17 20:06:53 by vorhansa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -104,8 +104,19 @@ void	custom_usleep(long long ms, t_sim *sim)
 void	lock_forks(t_philo *philo)
 {
 	pthread_mutex_lock(philo->left_lock);
+	if (is_stopped(philo->sim))
+	{
+		pthread_mutex_unlock(philo->left_lock);
+		return ;
+	}
 	log_action(philo, "has taken a fork");
 	pthread_mutex_lock(philo->right_lock);
+	if (is_stopped(philo->sim))
+	{
+		pthread_mutex_unlock(philo->right_lock);
+		pthread_mutex_unlock(philo->left_lock);
+		return ;
+	}
 	log_action(philo, "has taken a fork");
 }
 
