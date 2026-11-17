@@ -6,7 +6,7 @@
 /*   By: vorhansa <vorhansa@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/11/16 18:41:15 by vorhansa          #+#    #+#             */
-/*   Updated: 2026/11/17 14:47:08 by vorhansa         ###   ########.fr       */
+/*   Updated: 2026/11/17 14:53:44 by vorhansa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -126,3 +126,23 @@ void	unlock_forks(t_philo *philo)
 	pthread_mutex_unlock(philo->left_lock);
 	pthread_mutex_unlock(philo->right_lock);
 }
+
+/**
+ * The full philosopher cycle is:
+ * 
+ * 1. `lock_forks(philo)`
+ * 2. `philo_eat(philo)`
+ * 3. `unlock_forks(philo)`
+ * 4. sleep
+ * 5. think
+ * 6. repeat until simulation stops
+ * 
+ * The helpers in this file are the “control layer” for that logic:
+ * `is_stopped` checks if all work should end
+ * `set_stopped` ends the simulation
+ * `custom_usleep` waits safely
+ * `lock_forks` and `unlock_forks` manage shared resources
+ * 
+ * These are essential for preventing deadlock, race conditions, 
+ * and uncontrolled thread execution.
+ */
