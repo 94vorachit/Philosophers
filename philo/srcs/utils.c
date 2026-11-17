@@ -6,7 +6,7 @@
 /*   By: vorhansa <vorhansa@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/02 17:44:50 by vorhansa          #+#    #+#             */
-/*   Updated: 2026/11/12 15:41:11 by vorhansa         ###   ########.fr       */
+/*   Updated: 2026/11/17 15:38:35 by vorhansa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -67,7 +67,21 @@ int	is_number(const char *s)
 	return (1);
 }
 
-int	get_int_value(const char *s, int *out)
+/**
+ * Purpose: Converts a numeric string into an int safely.
+ * 
+ * How it works
+ * 1. calls `is_number(s)`
+ * * if invalid, returns `0`
+ * 2. calls `ft_atoi(s)`
+ * 3. checks that the result is in the valid range for `int`
+ * 4. stores it into `*res`
+ * 5. returns `1`
+ * 
+ * This prevents invalid values like overflow or non-numeric input 
+ * from breaking the program.
+ */
+int	get_int_value(const char *s, int *res)
 {
 	long	value;
 
@@ -76,10 +90,30 @@ int	get_int_value(const char *s, int *out)
 	value = ft_atoi(s);
 	if (value < INT_MIN || value > INT_MAX)
 		return (0);
-	*out = (int)value;
+	*res = (int)value;
 	return (1);
 }
 
+/**
+ * Purpose: Validates and stores the program arguments into 
+ * the simulation structure.
+ * 
+ * How it works
+ * 1. `ac` must be either `5` or `6`
+ * 2. `av[1]`: philosopher count
+ * 3. `av[2]`: time to die
+ * 4. `av[3]`: time to eat
+ * 5. `av[4]`: time to sleep
+ * 6. `av[5]` optional: number of meals before exit
+ * 
+ * Then it checks:
+ * all values are valid integers
+ * philosopher count is between `1` and `PHILO_MAX_COUNT`
+ * all timing values are positive
+ * optional must_eat is not negative
+ * 
+ * If any condition fails, it returns 0.
+ */
 int	parse_args(int ac, char **av, t_sim *sim)
 {
 	if (ac < 5 || ac > 6)
