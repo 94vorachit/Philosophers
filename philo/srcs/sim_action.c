@@ -6,7 +6,7 @@
 /*   By: vorhansa <vorhansa@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/11/16 19:02:07 by vorhansa          #+#    #+#             */
-/*   Updated: 2026/11/22 18:01:02 by vorhansa         ###   ########.fr       */
+/*   Updated: 2026/11/22 18:32:22 by vorhansa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -206,24 +206,10 @@ void	*philo_routine(void *arg)
 }
 
 /**
- * How the whole simulation fits together
- * 
- * The flow is:
- * 1. start_simulation() in simulation.c
- * * creates a monitor thread
- * * creates one thread per philosopher
- * 2. Each philosopher runs philo_routine()
- * * it takes forks, eats, sleeps, thinks
- * 3. The monitor thread in sim_monitor.c
- * * checks if someone died
- * * checks if all philosophers have eaten enough
- * * sets sim->stop = true when needed
- * 4. Helper functions in sim_utils.c
- * is_stopped()
- * set_stopped()
- * custom_usleep()
- * lock_forks()
- * unlock_forks()
- * 
- * These helpers make the logic safe under concurrency.
+ * Overall workflow:
+ * 1. Each philosopher sets its last-meal timestamp at thread start.
+ * 2. Even and odd counts receive parity-aware startup timing.
+ * 3. The philosopher cycle takes forks, eats, releases, sleeps, and thinks.
+ * 4. The monitor independently stops the run for death or meal completion.
+ * 5. Shared mutexes serialize state reads, logs, stop checks, and fork use.
  */

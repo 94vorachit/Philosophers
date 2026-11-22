@@ -6,12 +6,16 @@
 /*   By: vorhansa <vorhansa@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/02 17:44:50 by vorhansa          #+#    #+#             */
-/*   Updated: 2026/11/22 14:48:23 by vorhansa         ###   ########.fr       */
+/*   Updated: 2026/11/22 18:32:22 by vorhansa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "philo.h"
 
+/**
+ * Purpose: Return the length of a C string.
+ * How it works: Increment an index until the null terminator is reached.
+ */
 size_t	ft_strlen(const char *s)
 {
 	size_t	i;
@@ -22,6 +26,11 @@ size_t	ft_strlen(const char *s)
 	return (i);
 }
 
+/**
+ * Purpose: Convert a signed numeric string to a long integer.
+ * How it works: Skip whitespace, read an optional sign, and accumulate digits.
+ * Overflow is stopped at INT_MAX because the argument parser validates range.
+ */
 long	ft_atoi(const char *str)
 {
 	long	num;
@@ -47,6 +56,10 @@ long	ft_atoi(const char *str)
 	return (num * sign);
 }
 
+/**
+ * Purpose: Check whether a string represents an integer argument.
+ * How it works: Reject empty strings and non-digits; an optional sign is allowed.
+ */
 int	is_number(const char *s)
 {
 	int	i;
@@ -141,3 +154,11 @@ int	parse_args(int ac, char **av, t_sim *sim)
 	}
 	return (1);
 }
+
+/**
+ * Overall workflow:
+ * 1. Read arguments as strings.
+ * 2. Validate their characters with is_number.
+ * 3. Convert and range-check each value with get_int_value.
+ * 4. Store all valid values in t_sim for initialization and simulation.
+ */

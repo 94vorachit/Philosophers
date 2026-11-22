@@ -6,12 +6,17 @@
 /*   By: vorhansa <vorhansa@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/11/22 16:35:24 by vorhansa          #+#    #+#             */
-/*   Updated: 2026/11/22 18:01:02 by vorhansa         ###   ########.fr       */
+/*   Updated: 2026/11/22 18:32:22 by vorhansa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "philo.h"
 
+/**
+ * Purpose: Choose the two fork mutexes for a philosopher in ascending fork-index order.
+ * How it works: Compare left_fork/right_fork, then assign first and second pointers.
+ * The fixed order is used to prevent circular lock acquisition.
+ */
 void	lock_forks_order(t_philo *philo, pthread_mutex_t **first,
 		pthread_mutex_t **second)
 {
@@ -28,20 +33,12 @@ void	lock_forks_order(t_philo *philo, pthread_mutex_t **first,
 }
 
 /**
- * Purpose: Take the philosopher’s left and right forks.
- * 
+ * Purpose: Lock both forks required for one eating turn.
  * How it works:
- * 1. `pthread_mutex_lock(philo->left_lock);`
- * 2. logs: “has taken a fork”
- * 3. `pthread_mutex_lock(philo->right_lock);`
- * 4. logs: “has taken a fork”
- * 
- * Why this matters:
- * * Each philosopher needs both forks to eat.
- * * Locking them prevents two philosophers from grabbing 
- * the same fork at the same time.
- * 
- * This is the key concurrency rule in the Dining Philosophers problem.
+ * 1. Resolve both forks in stable index order.
+ * 2. Apply odd-table startup delay when needed.
+ * 3. Lock the first fork and stop early if shutdown begins.
+ * 4. Lock the second fork and log both fork acquisitions.
  */
 void	lock_forks(t_philo *philo)
 {
@@ -69,3 +66,11 @@ void	lock_forks(t_philo *philo)
 	}
 	log_action(philo, "has taken a fork");
 }
+
+/**
+ * Overall workflow:
+ * 1. Resolve each philosopher's two fork mutex pointers.
+ * 2. Acquire the lower fork index first to prevent deadlock cycles.
+ * 3. Log each successful fork acquisition.
+ * 4. Eating and fork release are handled by sim_action.c and sim_utils.c.
+ */

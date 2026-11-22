@@ -6,7 +6,7 @@
 /*   By: vorhansa <vorhansa@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/11/16 19:03:25 by vorhansa          #+#    #+#             */
-/*   Updated: 2026/11/22 18:13:04 by vorhansa         ###   ########.fr       */
+/*   Updated: 2026/11/22 18:32:22 by vorhansa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -167,15 +167,10 @@ void	*monitor_routine(void *arg)
 }
 
 /**
- * Overall workflow
- * 
- * The logic works like this:
- * 1. Philosophers update last_meal_ms when they eat.
- * 2. The monitor thread continuously checks each philosopher’s time 
- * since last meal.
- * 3. If a philosopher exceeds time_to_die, it prints “died” and 
- * sets the stop flag.
- * 4. If must_eat is set and everyone has eaten enough, 
- * it also stops the simulation.
- * 5. The philosopher threads stop when stop becomes true.
+ * Overall workflow:
+ * 1. The monitor repeatedly scans every unfinished philosopher.
+ * 2. Under state_lock, it compares elapsed time with time_to_die.
+ * 3. A starving philosopher prints one death message and sets stop.
+ * 4. If must_eat is reached by every philosopher, set_stopped ends the run.
+ * 5. The short monitoring wait keeps shutdown responsive.
  */

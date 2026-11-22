@@ -6,7 +6,7 @@
 /*   By: vorhansa <vorhansa@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/02 17:43:45 by vorhansa          #+#    #+#             */
-/*   Updated: 2026/11/22 17:43:45 by vorhansa         ###   ########.fr       */
+/*   Updated: 2026/11/22 18:34:34 by vorhansa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -81,8 +81,9 @@ int			start_simulation(t_sim *sim);
 bool		is_stopped(t_sim *sim);
 void		set_stopped(t_sim *sim);
 void		custom_usleep(long long ms, t_sim *sim);
-void		lock_forks(t_philo *philo);
 void		unlock_forks(t_philo *philo);
+/*sim_utils2*/
+void		lock_forks(t_philo *philo);
 /*sim_action*/
 void		log_action(t_philo *philo, const char *msg);
 void		*philo_routine(void *arg);
