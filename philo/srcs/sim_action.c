@@ -6,7 +6,7 @@
 /*   By: vorhansa <vorhansa@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/11/16 19:02:07 by vorhansa          #+#    #+#             */
-/*   Updated: 2026/11/17 14:56:48 by vorhansa         ###   ########.fr       */
+/*   Updated: 2026/11/22 18:01:02 by vorhansa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -186,8 +186,16 @@ void	*philo_routine(void *arg)
 	t_philo	*philo;
 
 	philo = (t_philo *)arg;
-	if (philo->id % 2 == 0)
-		custom_usleep(1, philo->sim);
+	pthread_mutex_lock(&philo->sim->state_lock);
+	philo->last_meal_ms = now_ms();
+	pthread_mutex_unlock(&philo->sim->state_lock);
+	if (philo->sim->philo_count > 1
+		&& philo->id % 2 == 0)
+		custom_usleep(philo->sim->time_to_eat, philo->sim);
+	else if (philo->sim->philo_count % 2 == 1
+		&& (philo->id % 2 == 0
+			|| philo->id > 2 * ((philo->sim->philo_count - 1) / 2) - 1))
+		custom_usleep(philo->sim->time_to_eat, philo->sim);
 	if (philo->sim->philo_count == 1)
 	{
 		single_philo_case(philo);

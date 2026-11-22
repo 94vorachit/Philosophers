@@ -6,7 +6,7 @@
 /*   By: vorhansa <vorhansa@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/11/16 18:41:15 by vorhansa          #+#    #+#             */
-/*   Updated: 2026/11/17 20:06:53 by vorhansa         ###   ########.fr       */
+/*   Updated: 2026/11/22 17:43:45 by vorhansa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -86,41 +86,6 @@ void	custom_usleep(long long ms, t_sim *sim)
 }
 
 /**
- * Purpose: Take the philosopher’s left and right forks.
- * 
- * How it works:
- * 1. `pthread_mutex_lock(philo->left_lock);`
- * 2. logs: “has taken a fork”
- * 3. `pthread_mutex_lock(philo->right_lock);`
- * 4. logs: “has taken a fork”
- * 
- * Why this matters:
- * * Each philosopher needs both forks to eat.
- * * Locking them prevents two philosophers from grabbing 
- * the same fork at the same time.
- * 
- * This is the key concurrency rule in the Dining Philosophers problem.
- */
-void	lock_forks(t_philo *philo)
-{
-	pthread_mutex_lock(philo->left_lock);
-	if (is_stopped(philo->sim))
-	{
-		pthread_mutex_unlock(philo->left_lock);
-		return ;
-	}
-	log_action(philo, "has taken a fork");
-	pthread_mutex_lock(philo->right_lock);
-	if (is_stopped(philo->sim))
-	{
-		pthread_mutex_unlock(philo->right_lock);
-		pthread_mutex_unlock(philo->left_lock);
-		return ;
-	}
-	log_action(philo, "has taken a fork");
-}
-
-/**
  * Purpose: Release both fork mutexes after eating.
  * 
  * How it works:
@@ -136,6 +101,20 @@ void	unlock_forks(t_philo *philo)
 {
 	pthread_mutex_unlock(philo->left_lock);
 	pthread_mutex_unlock(philo->right_lock);
+	if (philo->sim->philo_count % 2 == 1)
+	{
+		pthread_mutex_lock(&philo->sim->turn_lock);
+		if (philo->sim->turn_id % 2 == 1
+			&& philo->sim->turn_id + 2 <= philo->sim->philo_count)
+			philo->sim->turn_id += 2;
+		else if (philo->sim->turn_id % 2 == 1)
+			philo->sim->turn_id = 2;
+		else if (philo->sim->turn_id + 2 <= philo->sim->philo_count)
+			philo->sim->turn_id += 2;
+		else
+			philo->sim->turn_id = 1;
+		pthread_mutex_unlock(&philo->sim->turn_lock);
+	}
 }
 
 /**

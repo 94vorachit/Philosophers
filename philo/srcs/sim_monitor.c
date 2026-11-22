@@ -6,7 +6,7 @@
 /*   By: vorhansa <vorhansa@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/11/16 19:03:25 by vorhansa          #+#    #+#             */
-/*   Updated: 2026/11/17 20:06:53 by vorhansa         ###   ########.fr       */
+/*   Updated: 2026/11/22 18:13:04 by vorhansa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -114,10 +114,16 @@ void	monitor_cycle(t_sim *sim)
 	{
 		pthread_mutex_lock(&sim->state_lock);
 		now = now_ms();
+		if (sim->must_eat >= 0
+			&& sim->philos[index].meals_eaten >= sim->must_eat)
+		{
+			pthread_mutex_unlock(&sim->state_lock);
+			index++;
+			continue ;
+		}
 		if (now - sim->philos[index].last_meal_ms > sim->time_to_die)
 		{
-			if (check_death(sim, index, now))
-				return ;
+			check_death(sim, index, now);
 			return ;
 		}
 		pthread_mutex_unlock(&sim->state_lock);
@@ -155,7 +161,7 @@ void	*monitor_routine(void *arg)
 			set_stopped(sim);
 			return (NULL);
 		}
-		usleep(500);
+		usleep(100);
 	}
 	return (NULL);
 }
