@@ -6,7 +6,7 @@
 /*   By: vorhansa <vorhansa@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/11/12 15:00:00 by vorhansa          #+#    #+#             */
-/*   Updated: 2026/11/22 18:01:02 by vorhansa         ###   ########.fr       */
+/*   Updated: 2026/11/22 21:25:11 by vorhansa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -69,9 +69,6 @@ int	init_mutexes(t_sim *sim)
 	if (pthread_mutex_init(&sim->stop_lock, NULL) != 0)
 		return (0);
 	sim->stop_lock_init = true;
-	if (pthread_mutex_init(&sim->turn_lock, NULL) != 0)
-		return (0);
-	sim->turn_lock_init = true;
 	return (1);
 }
 
@@ -125,8 +122,6 @@ void	set_init_sim(t_sim *sim)
 	sim->print_lock_init = false;
 	sim->state_lock_init = false;
 	sim->stop_lock_init = false;
-	sim->turn_lock_init = false;
-	sim->turn_id = 1;
 	sim->forks_init_count = 0;
 }
 

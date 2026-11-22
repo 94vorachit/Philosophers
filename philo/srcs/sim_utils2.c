@@ -6,16 +6,19 @@
 /*   By: vorhansa <vorhansa@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/11/22 16:35:24 by vorhansa          #+#    #+#             */
-/*   Updated: 2026/11/22 18:32:22 by vorhansa         ###   ########.fr       */
+/*   Updated: 2026/11/22 19:12:04 by vorhansa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "philo.h"
 
 /**
- * Purpose: Choose the two fork mutexes for a philosopher in ascending fork-index order.
- * How it works: Compare left_fork/right_fork, then assign first and second pointers.
- * The fixed order is used to prevent circular lock acquisition.
+ * Purpose: Choose the two fork mutexes for a philosopher in 
+ * ascending fork-index order.
+ * 
+ * How it works: 
+ * * Compare left_fork/right_fork, then assign first and second pointers.
+ * * The fixed order is used to prevent circular lock acquisition.
  */
 void	lock_forks_order(t_philo *philo, pthread_mutex_t **first,
 		pthread_mutex_t **second)
@@ -34,6 +37,7 @@ void	lock_forks_order(t_philo *philo, pthread_mutex_t **first,
 
 /**
  * Purpose: Lock both forks required for one eating turn.
+ * 
  * How it works:
  * 1. Resolve both forks in stable index order.
  * 2. Apply odd-table startup delay when needed.

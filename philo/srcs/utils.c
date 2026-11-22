@@ -6,7 +6,7 @@
 /*   By: vorhansa <vorhansa@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/02 17:44:50 by vorhansa          #+#    #+#             */
-/*   Updated: 2026/11/22 18:32:22 by vorhansa         ###   ########.fr       */
+/*   Updated: 2026/11/22 19:13:17 by vorhansa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,7 +14,9 @@
 
 /**
  * Purpose: Return the length of a C string.
- * How it works: Increment an index until the null terminator is reached.
+ * 
+ * How it works: 
+ * * Increment an index until the null terminator is reached.
  */
 size_t	ft_strlen(const char *s)
 {
@@ -28,8 +30,12 @@ size_t	ft_strlen(const char *s)
 
 /**
  * Purpose: Convert a signed numeric string to a long integer.
- * How it works: Skip whitespace, read an optional sign, and accumulate digits.
- * Overflow is stopped at INT_MAX because the argument parser validates range.
+ * 
+ * How it works: 
+ * 
+ * 1. Skip whitespace, read an optional sign, and accumulate digits.
+ * 2. Overflow is stopped at INT_MAX because 
+ * the argument parser validates range.
  */
 long	ft_atoi(const char *str)
 {
@@ -58,7 +64,9 @@ long	ft_atoi(const char *str)
 
 /**
  * Purpose: Check whether a string represents an integer argument.
- * How it works: Reject empty strings and non-digits; an optional sign is allowed.
+ * 
+ * How it works:
+ * * Reject empty strings and non-digits; an optional sign is allowed.
  */
 int	is_number(const char *s)
 {

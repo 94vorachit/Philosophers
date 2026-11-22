@@ -6,7 +6,7 @@
 /*   By: vorhansa <vorhansa@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/11/16 18:41:15 by vorhansa          #+#    #+#             */
-/*   Updated: 2026/11/22 17:43:45 by vorhansa         ###   ########.fr       */
+/*   Updated: 2026/11/22 21:25:11 by vorhansa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -101,20 +101,6 @@ void	unlock_forks(t_philo *philo)
 {
 	pthread_mutex_unlock(philo->left_lock);
 	pthread_mutex_unlock(philo->right_lock);
-	if (philo->sim->philo_count % 2 == 1)
-	{
-		pthread_mutex_lock(&philo->sim->turn_lock);
-		if (philo->sim->turn_id % 2 == 1
-			&& philo->sim->turn_id + 2 <= philo->sim->philo_count)
-			philo->sim->turn_id += 2;
-		else if (philo->sim->turn_id % 2 == 1)
-			philo->sim->turn_id = 2;
-		else if (philo->sim->turn_id + 2 <= philo->sim->philo_count)
-			philo->sim->turn_id += 2;
-		else
-			philo->sim->turn_id = 1;
-		pthread_mutex_unlock(&philo->sim->turn_lock);
-	}
 }
 
 /**

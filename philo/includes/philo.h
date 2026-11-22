@@ -6,7 +6,7 @@
 /*   By: vorhansa <vorhansa@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/02 17:43:45 by vorhansa          #+#    #+#             */
-/*   Updated: 2026/11/22 18:34:34 by vorhansa         ###   ########.fr       */
+/*   Updated: 2026/11/22 21:25:11 by vorhansa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -51,13 +51,10 @@ struct s_sim
 	bool			print_lock_init;
 	bool			state_lock_init;
 	bool			stop_lock_init;
-	bool			turn_lock_init;
-	int				turn_id;
 	int				forks_init_count;
 	pthread_mutex_t	stop_lock;
 	pthread_mutex_t	print_lock;
 	pthread_mutex_t	state_lock;
-	pthread_mutex_t	turn_lock;
 	pthread_mutex_t	*forks;
 	pthread_t		*threads;
 	pthread_t		monitor;

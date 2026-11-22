@@ -6,7 +6,7 @@
 /*   By: vorhansa <vorhansa@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/02 17:37:06 by vorhansa          #+#    #+#             */
-/*   Updated: 2026/11/22 17:31:48 by vorhansa         ###   ########.fr       */
+/*   Updated: 2026/11/22 21:25:11 by vorhansa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,12 +19,10 @@
  * * if `sim->print_lock_init` is true, destroy `print_lock`
  * * if `sim->state_lock_init` is true, destroy `state_lock`
  * * if `sim->stop_lock_init` is true, destroy `stop_lock`
- * * if `sim->turn_lock_init` is true, destroy `turn_lock`
  * Then it resets the flags:
  * * `print_lock_init = false`
  * * `state_lock_init = false`
  * * `stop_lock_init = false`
- * * `turn_lock_init = false`
  * * `forks_init_count = 0`
  * 
  * Destroying them prevents resource leaks.
@@ -37,12 +35,9 @@ void	destroy_control_locks(t_sim *sim)
 		pthread_mutex_destroy(&sim->state_lock);
 	if (sim->stop_lock_init)
 		pthread_mutex_destroy(&sim->stop_lock);
-	if (sim->turn_lock_init)
-		pthread_mutex_destroy(&sim->turn_lock);
 	sim->print_lock_init = false;
 	sim->state_lock_init = false;
 	sim->stop_lock_init = false;
-	sim->turn_lock_init = false;
 	sim->forks_init_count = 0;
 }
 

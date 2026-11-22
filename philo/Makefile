@@ -2,6 +2,7 @@ NAME = philo
 
 CC = cc
 CFLAGS = -Wall -Wextra -Werror -pthread
+FSAN = -g -O1 -fsanitize=address,undefined
 CPPFLAGS = -Iincludes
 SRCS = $(wildcard srcs/*.c)
 OBJS = $(SRCS:.c=.o)
@@ -22,4 +23,8 @@ fclean: clean
 
 re: fclean all
 
-.PHONY: all clean fclean re test
+fsan:
+	$(MAKE) fclean
+	$(MAKE) CFLAGS="$(CFLAGS) $(FSAN)"
+
+.PHONY: all clean fclean re test fsan

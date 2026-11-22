@@ -6,7 +6,7 @@
 /*   By: vorhansa <vorhansa@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/11/16 19:02:07 by vorhansa          #+#    #+#             */
-/*   Updated: 2026/11/22 18:32:22 by vorhansa         ###   ########.fr       */
+/*   Updated: 2026/11/22 21:50:04 by vorhansa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -52,7 +52,7 @@ void	log_action(t_philo *philo, const char *msg)
 	if (!stopped)
 	{
 		elapsed = now_ms() - philo->sim->start_time_ms;
-		printf("%lld %d %s\n", elapsed, philo->id, msg);
+		printf("[%lld] %d %s\n", elapsed, philo->id, msg);
 	}
 	pthread_mutex_unlock(&philo->sim->print_lock);
 }
@@ -169,17 +169,14 @@ void	philo_cycle(t_philo *philo)
 }
 
 /**
- * Purpose: This is the thread entry point for each philosopher.
- * 
+ * Purpose: Serves as the entry point for a philosopher thread.
+ *
  * How it works:
- * 1. It casts the void pointer back to `t_philo *`
- * 2. If philosopher id is even, it waits a tiny bit:
- * * `custom_usleep(1, philo->sim)`
- * * this helps avoid deadlock timing issues
- * 3. If `philo_count == 1`, it calls `single_philo_case`
- * 4. Otherwise it runs `philo_cycle`
- * 
- * So each philosopher thread starts here, and then follows the repeating cycle.
+ * 1. Converts `arg` to a philosopher pointer.
+ * 2. Initializes `last_meal_ms` under `state_lock`.
+ * 3. Applies a startup delay to stagger fork acquisition.
+ * 4. Handles the one-philosopher case separately.
+ * 5. Otherwise, starts the repeated eating/sleeping/thinking cycle.
  */
 void	*philo_routine(void *arg)
 {
@@ -189,12 +186,7 @@ void	*philo_routine(void *arg)
 	pthread_mutex_lock(&philo->sim->state_lock);
 	philo->last_meal_ms = now_ms();
 	pthread_mutex_unlock(&philo->sim->state_lock);
-	if (philo->sim->philo_count > 1
-		&& philo->id % 2 == 0)
-		custom_usleep(philo->sim->time_to_eat, philo->sim);
-	else if (philo->sim->philo_count % 2 == 1
-		&& (philo->id % 2 == 0
-			|| philo->id > 2 * ((philo->sim->philo_count - 1) / 2) - 1))
+	if (philo->id % 2 == 0)
 		custom_usleep(philo->sim->time_to_eat, philo->sim);
 	if (philo->sim->philo_count == 1)
 	{
